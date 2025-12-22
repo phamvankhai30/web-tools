@@ -9,29 +9,17 @@
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
-      --primary-light: #edf2ff;
       --success: #06d6a0;
-      --success-light: rgba(6, 214, 160, 0.1);
       --error: #ef476f;
-      --error-light: rgba(239, 71, 111, 0.1);
       --warning: #ffd166;
-      --warning-light: rgba(255, 209, 102, 0.1);
-      --gray-50: #f8fafc;
-      --gray-100: #f1f5f9;
-      --gray-200: #e2e8f0;
-      --gray-300: #cbd5e1;
-      --gray-400: #94a3b8;
-      --gray-500: #64748b;
-      --gray-600: #475569;
-      --gray-700: #334155;
-      --gray-800: #1e293b;
-      --gray-900: #0f172a;
-      --border-radius: 8px;
-      --border-radius-sm: 4px;
-      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
-      --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-600: #6c757d;
+      --gray-800: #343a40;
+      --border-radius: 6px;
+      --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     * {
@@ -41,80 +29,51 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8fafc;
       color: var(--gray-800);
       min-height: 100vh;
       font-size: 14px;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     .container {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 16px;
     }
 
     header {
       text-align: center;
-      margin-bottom: 32px;
-      padding-bottom: 24px;
-      border-bottom: 2px solid var(--gray-200);
-      background: white;
-      border-radius: var(--border-radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      margin-top: 8px;
+      margin-bottom: 20px;
+      padding: 0 0 10px 0;
+      border-bottom: 1px solid var(--gray-200);
     }
 
     h1 {
-      color: var(--gray-900);
-      margin-bottom: 8px;
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, var(--primary) 0%, #3a0ca3 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--gray-800);
+      margin-bottom: 4px;
+      font-size: 1.0rem;
+      font-weight: 600;
     }
 
     .subtitle {
       color: var(--gray-600);
-      font-size: 15px;
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.6;
+      font-size: 0.875rem;
     }
 
     .main-content {
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 24px;
-      min-height: calc(100vh - 200px);
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: calc(100vh - 120px);
     }
 
     @media (max-width: 1024px) {
       .main-content {
         grid-template-columns: 1fr;
-        gap: 20px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .container {
-        padding: 12px;
-      }
-      
-      header {
-        padding: 20px 16px;
-        margin-bottom: 20px;
-      }
-      
-      h1 {
-        font-size: 24px;
+        height: auto;
       }
     }
 
@@ -122,59 +81,38 @@
     .results-section {
       display: flex;
       flex-direction: column;
+    }
+
+    .control-section {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      height: 100%;
+    }
+
+    .results-section {
       background: white;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
       overflow: hidden;
-      height: fit-content;
-      max-height: calc(100vh - 200px);
-    }
-
-    .control-section {
-      padding: 0;
-    }
-
-    .results-section {
-      border: 1px solid var(--gray-200);
+      height: 100%;
     }
 
     .section-header {
-      font-size: 16px;
+      font-size: 1.1rem;
       font-weight: 600;
       color: var(--gray-800);
-      padding: 20px 24px;
-      background: var(--gray-50);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
       border-bottom: 1px solid var(--gray-200);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-header::before {
-      content: "";
-      width: 4px;
-      height: 16px;
-      background: var(--primary);
-      border-radius: 2px;
-    }
-
-    .control-section .section-content {
-      padding: 24px;
-      flex: 1;
-      overflow-y: auto;
     }
 
     .form-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-
-    @media (min-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr 2fr;
-      }
+      grid-template-columns: 1fr 3fr;
+      gap: 16px;
+      margin-bottom: 16px;
     }
 
     .form-group {
@@ -183,236 +121,179 @@
     }
 
     .form-group.full-width {
-      grid-column: 1 / -1;
+      grid-column: span 2;
     }
 
     label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--gray-700);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    label::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--gray-300) 0%, transparent 100%);
-      margin-left: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--gray-800);
+      margin-bottom: 6px;
     }
 
     input,
     select,
     textarea {
       width: 100%;
-      padding: 12px 16px;
-      font-size: 14px;
-      color: var(--gray-800);
-      background: var(--gray-50);
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius-sm);
-      transition: var(--transition);
-      font-family: inherit;
+      padding: 10px 12px;
+      font-size: 0.9em;
+      color: #000;
+      background-color: #fff;
+      caret-color: #000;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      min-height: 40px;
+      box-sizing: border-box;
     }
 
     input:focus,
     select:focus,
     textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-      background: rgb(0, 0, 0);
-    }
-
-    input:hover,
-    select:hover,
-    textarea:hover {
-      border-color: var(--gray-300);
+      outline: 2px solid #007BFF;
     }
 
     textarea {
-      min-height: 120px;
+      min-height: 100px;
       resize: vertical;
-      font-family: 'SF Mono', 'Consolas', 'Monaco', 'Andale Mono', monospace;
-      font-size: 13px;
-      line-height: 1.5;
-      padding: 16px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.4;
     }
 
     select {
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      background-size: 16px;
-      padding-right: 40px;
+      height: 40px;
+      padding: 0 12px;
     }
 
     .input-with-clear {
       position: relative;
+      width: 100%;
     }
 
     .input-with-clear input {
-      padding-right: 40px;
+      padding-right: 32px;
+      width: 100%;
     }
 
     .clear-btn {
       position: absolute;
-      right: 12px;
+      right: 10px;
       top: 50%;
       transform: translateY(-50%);
       background: var(--gray-300);
       color: var(--gray-600);
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      opacity: 0.6;
-      transition: var(--transition);
+      opacity: 0.7;
+      transition: all 0.15s;
+      user-select: none;
+      padding: 0;
       border: none;
-      font-size: 12px;
+      outline: none;
     }
 
     .clear-btn:hover {
       background: var(--error);
-      color: white;
+      /* Thay đổi từ var(--gray-400) thành var(--error) */
+      color: rgb(0, 0, 0);
+      /* Đổi màu chữ thành trắng khi hover */
       opacity: 1;
-      transform: translateY(-50%) scale(1.1);
+    }
+
+    .clear-btn svg {
+      width: 10px;
+      height: 10px;
+      display: block;
+      fill: currentColor;
+    }
+
+    .input-with-clear input:not(:placeholder-shown)+.clear-btn {
+      display: flex;
+    }
+
+    .input-with-clear input:placeholder-shown+.clear-btn {
+      display: none;
     }
 
     .button-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      display: flex;
       gap: 12px;
-      margin: 32px 0;
-      padding: 20px;
-      background: var(--gray-50);
-      border-radius: var(--border-radius);
-      border: 1px solid var(--gray-200);
+      margin-top: 20px;
     }
 
-    @media (max-width: 640px) {
-      .button-group {
-        grid-template-columns: 1fr;
-      }
+    .button-group .btn {
+      flex: 1;
+      min-width: 0;
     }
 
     .btn {
-      padding: 12px 20px;
+      padding: 10px 16px;
       border: none;
-      border-radius: var(--border-radius-sm);
-      font-weight: 600;
-      font-size: 14px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      font-size: 0.875rem;
       cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      letter-spacing: 0.3px;
+      transition: all 0.15s;
+      text-align: center;
     }
 
     .btn-secondary {
-      background: white;
-      color: var(--gray-700);
-      border: 2px solid var(--gray-300);
+      background: var(--gray-200);
+      color: var(--gray-800);
     }
 
     .btn-secondary:hover {
-      background: var(--gray-50);
-      border-color: var(--gray-400);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow);
+      background: var(--gray-300);
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      background: var(--primary);
       color: white;
-      box-shadow: 0 2px 4px rgba(67, 97, 238, 0.2);
     }
 
     .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+      background: var(--primary-dark);
     }
 
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 40px 20px;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: var(--border-radius);
-      margin: 20px 0;
-      border: 2px dashed var(--gray-200);
-    }
-
-    .spinner {
-      border: 3px solid var(--primary-light);
-      border-left: 3px solid var(--primary);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 16px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .btn-block {
+      width: 100%;
     }
 
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
-      margin-top: 24px;
-      padding: 20px;
-      background: var(--gray-50);
+      margin-bottom: 20px;
+      padding: 16px;
+      background: var(--gray-100);
       border-radius: var(--border-radius);
-      border: 1px solid var(--gray-200);
     }
 
     .stat-item {
       text-align: center;
-      padding: 16px 12px;
+      padding: 12px;
       background: white;
-      border-radius: var(--border-radius-sm);
+      border-radius: var(--border-radius);
       box-shadow: var(--shadow);
-      transition: var(--transition);
-      border: 1px solid transparent;
-    }
-
-    .stat-item:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--primary-light);
     }
 
     .stat-value {
-      font-size: 24px;
-      font-weight: 700;
+      font-size: 1.5rem;
+      font-weight: 600;
       line-height: 1;
-      margin-bottom: 8px;
-      font-family: 'SF Mono', monospace;
+      margin-bottom: 4px;
     }
 
     .stat-label {
-      font-size: 11px;
-      color: var(--gray-500);
+      font-size: 0.75rem;
+      color: var(--gray-600);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      font-weight: 600;
+      letter-spacing: 0.5px;
     }
 
     .success {
@@ -423,21 +304,16 @@
       color: var(--error);
     }
 
-    .warning {
-      color: var(--warning);
-    }
-
     .results-container {
       flex: 1;
       overflow: auto;
-      position: relative;
+      padding: 0;
     }
 
     .results-table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 13px;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
     }
 
     .results-table thead {
@@ -445,113 +321,89 @@
       top: 0;
       background: white;
       z-index: 10;
-      box-shadow: 0 2px 0 var(--gray-200);
+      box-shadow: 0 1px 0 var(--gray-200);
     }
 
     .results-table th {
-      padding: 16px 12px;
+      padding: 12px;
       text-align: left;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--gray-600);
-      border-bottom: 2px solid var(--gray-200);
-      font-size: 12px;
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      white-space: nowrap;
-      background: var(--gray-50);
-    }
-
-    .results-table th:first-child {
-      padding-left: 24px;
-    }
-
-    .results-table th:last-child {
-      padding-right: 24px;
     }
 
     .results-table td {
-      padding: 14px 12px;
+      padding: 10px 12px;
       border-bottom: 1px solid var(--gray-100);
-      color: var(--gray-700);
     }
 
-    .results-table td:first-child {
-      padding-left: 24px;
-      font-weight: 600;
-      color: var(--gray-600);
-      font-family: 'SF Mono', monospace;
-    }
-
-    .results-table td:last-child {
-      padding-right: 24px;
-    }
-
-    .results-table tbody tr {
-      transition: var(--transition);
-    }
-
-    .results-table tbody tr:hover {
-      background: var(--primary-light);
-    }
-
-    .results-table tbody tr:nth-child(even) {
+    .results-table tr:hover {
       background: var(--gray-50);
     }
 
-    .results-table tbody tr:nth-child(even):hover {
-      background: var(--primary-light);
-    }
-
     .status-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px 10px;
+      display: inline-block;
+      padding: 4px 8px;
       border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      min-width: 70px;
+      font-size: 0.75rem;
+      font-weight: 500;
     }
 
     .badge-success {
-      background: var(--success-light);
+      background: rgba(6, 214, 160, 0.1);
       color: var(--success);
-      border: 1px solid rgba(6, 214, 160, 0.2);
     }
 
     .badge-error {
-      background: var(--error-light);
+      background: rgba(239, 71, 111, 0.1);
       color: var(--error);
-      border: 1px solid rgba(239, 71, 111, 0.2);
     }
 
     .view-btn {
-      padding: 6px 16px;
-      background: white;
-      border: 2px solid var(--gray-300);
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
+      padding: 4px 12px;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: 4px;
+      font-size: 0.75rem;
       color: var(--gray-700);
       cursor: pointer;
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      transition: all 0.15s;
     }
 
     .view-btn:hover {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(67, 97, 238, 0.2);
+      background: var(--gray-200);
     }
 
-    .view-btn::before {
-      content: "👁";
-      font-size: 10px;
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--border-radius);
+      margin-top: 20px;
+    }
+
+    .spinner {
+      border: 3px solid rgba(67, 97, 238, 0.1);
+      border-left: 3px solid var(--primary);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     .modal {
@@ -563,279 +415,191 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      animation: fadeIn 0.2s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      animation: fadeIn 0.2s;
     }
 
     .modal-content {
       background: white;
       margin: 5% auto;
       width: 90%;
-      max-width: 800px;
-      max-height: 85vh;
+      max-width: 700px;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-lg);
       overflow: hidden;
-      animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    @keyframes slideIn {
-      from { transform: translateY(-20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      animation: slideIn 0.2s;
     }
 
     .modal-header {
-      padding: 20px 24px;
-      background: var(--gray-900);
-      color: white;
+      padding: 16px 20px;
+      background: var(--gray-100);
+      border-bottom: 1px solid var(--gray-200);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .modal-header h3 {
-      font-size: 16px;
+      font-size: 1rem;
       font-weight: 600;
       margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .modal-header h3::before {
-      content: "📋";
-      font-size: 14px;
     }
 
     .close-btn {
-      background: rgba(255, 255, 255, 0.1);
+      background: none;
       border: none;
-      color: white;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+      font-size: 1.5rem;
+      color: var(--gray-600);
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      width: 24px;
+      height: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
     }
 
-    .close-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: rotate(90deg);
+    .close-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
     }
 
     .modal-body {
-      padding: 0;
-      max-height: calc(85vh - 80px);
+      padding: 20px;
+      max-height: 60vh;
       overflow: auto;
     }
 
     pre {
       margin: 0;
-      padding: 24px;
-      background: var(--gray-900);
-      color: var(--gray-100);
-      font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-      font-size: 13px;
-      line-height: 1.6;
+      padding: 16px;
+      background: var(--gray-50);
+      border-radius: var(--border-radius);
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.4;
       white-space: pre-wrap;
       word-wrap: break-word;
-      overflow-x: auto;
     }
 
-    pre code {
-      color: #e2e8f0;
-    }
-
-    .scroll-top-btn {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 44px;
-      height: 44px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      box-shadow: var(--shadow-lg);
-      transition: var(--transition);
-      z-index: 100;
-    }
-
-    .scroll-top-btn:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-    }
-
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
-      color: var(--gray-400);
+    .footer {
       text-align: center;
-    }
-
-    .empty-state svg {
-      width: 64px;
-      height: 64px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
-
-    .empty-state p {
-      font-size: 14px;
-      max-width: 300px;
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--gray-100);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--gray-400);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--gray-500);
-    }
-
-    @keyframes slideInUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    @keyframes fadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
+      padding: 16px;
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      border-top: 1px solid var(--gray-200);
+      margin-top: 20px;
     }
   </style>
 </head>
 
 <body>
-  <!-- Scroll to top button -->
-  <button class="scroll-top-btn" onclick="scrollToTop()">↑</button>
-
   <div class="container">
     <header>
       <h1>API Concurrent Tester</h1>
-      <p class="subtitle">Test your API endpoints with multiple concurrent requests. Monitor performance, track responses, and analyze results in real-time.</p>
+      <p class="subtitle">Send multiple requests to your API endpoint simultaneously</p>
     </header>
 
     <div class="main-content">
       <!-- Left Column: Controls -->
       <div class="control-section">
         <div class="section-header">Request Configuration</div>
-        
-        <div class="section-content">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="method">HTTP Method</label>
-              <select id="method">
-                <option>GET</option>
-                <option>POST</option>
-                <option>PUT</option>
-                <option>DELETE</option>
-                <option>PATCH</option>
-              </select>
-            </div>
 
-            <div class="form-group">
-              <label for="url">API Endpoint URL</label>
-              <div class="input-with-clear">
-                <input type="text" id="url" placeholder="https://api.example.com/endpoint">
-                <button class="clear-btn" onclick="clearInput('url')" title="Clear">×</button>
-              </div>
-            </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="method">HTTP Method</label>
+            <select id="method">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>DELETE</option>
+              <option>PATCH</option>
+            </select>
+          </div>
 
-            <div class="form-group">
-              <label for="count">Concurrent Requests</label>
-              <input type="number" id="count" value="5" min="1" max="100">
-            </div>
-
-            <div class="form-group">
-              <label for="token">Authorization Token</label>
-              <div class="input-with-clear">
-                <input type="text" id="token" placeholder="Bearer token or API key">
-                <button class="clear-btn" onclick="clearInput('token')" title="Clear">×</button>
-              </div>
-            </div>
-
-            <div class="form-group full-width">
-              <label for="body">Request Body (JSON)</label>
-              <textarea id="body" placeholder='{"key": "value"}'></textarea>
+          <div class="form-group">
+            <label for="url">API Endpoint URL</label>
+            <div class="input-with-clear">
+              <input type="text" id="url" placeholder="https://jsonplaceholder.typicode.com/posts">
+              <button class="clear-btn" onclick="clearInput('url')" title="Clear">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+              </button>
             </div>
           </div>
 
-          <div class="button-group">
-            <button class="btn btn-secondary" onclick="parseJsonToParams()">
-              <span>🔗</span> To Query Params
-            </button>
-            <button class="btn btn-secondary" onclick="formatJsonBody()">
-              <span>✨</span> Format JSON
-            </button>
-            <button class="btn btn-primary" onclick="runRequests()">
-              <span>🚀</span> Run Tests
-            </button>
+          <div class="form-group">
+            <label for="count">Concurrent Requests</label>
+            <input type="number" id="count" value="5" min="1" max="100">
           </div>
 
-          <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Sending concurrent requests...</p>
+          <div class="form-group">
+            <label for="token">Authorization Token (optional)</label>
+            <div class="input-with-clear">
+              <input type="text" id="token" placeholder="Bearer token or API key">
+              <button class="clear-btn" onclick="clearInput('token')" title="Clear">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <div class="stats-row" id="stats-container" style="display: none;">
-            <div class="stat-item">
-              <div class="stat-value success" id="stat-success">0</div>
-              <div class="stat-label">Successful</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value error" id="stat-error">0</div>
-              <div class="stat-label">Failed</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="stat-avg-time">0</div>
-              <div class="stat-label">Avg Time</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="stat-total">0</div>
-              <div class="stat-label">Total Requests</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="stat-min-time">0</div>
-              <div class="stat-label">Min Time</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="stat-max-time">0</div>
-              <div class="stat-label">Max Time</div>
-            </div>
+          <div class="form-group full-width">
+            <label for="body">Request Body (JSON, optional for POST/PUT/PATCH)</label>
+            <textarea id="body" placeholder='{"key": "value"}'></textarea>
           </div>
         </div>
+
+        <div class="button-group">
+          <button class="btn btn-secondary" onclick="parseJsonToParams()">Convert to Query Params</button>
+          <button class="btn btn-secondary" onclick="formatJsonBody()">Format JSON</button>
+          <button class="btn btn-primary" onclick="runRequests()">Run Concurrent Tests</button>
+        </div>
+
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p>Sending concurrent requests...</p>
+        </div>
+
+        <div class="stats-row" id="stats-container" style="display: none;">
+          <div class="stat-item">
+            <div class="stat-value success" id="stat-success">0</div>
+            <div class="stat-label">Successful</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value error" id="stat-error">0</div>
+            <div class="stat-label">Failed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-avg-time">0</div>
+            <div class="stat-label">Avg Time (ms)</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Total Requests</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-min-time">0</div>
+            <div class="stat-label">Min Time (ms)</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-max-time">0</div>
+            <div class="stat-label">Max Time (ms)</div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Right Column: Results -->
       <div class="results-section">
-        <div class="section-header">Test Results</div>
+        <div class="section-header" style="padding: 16px 20px; margin: 0; border-bottom: 1px solid var(--gray-200);">
+          Test Results
+        </div>
 
         <div class="results-container">
           <table class="results-table">
@@ -846,22 +610,12 @@
                 <th>Code</th>
                 <th>Start Time</th>
                 <th>End Time</th>
-                <th>Duration</th>
+                <th>Duration (ms)</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody id="table-body">
               <!-- Results will be populated here -->
-              <tr id="empty-state" style="display: table-row;">
-                <td colspan="7">
-                  <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                    </svg>
-                    <p>No test results yet. Configure your request and click "Run Tests" to start.</p>
-                  </div>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -874,35 +628,376 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3>Response Details</h3>
-        <button class="close-btn" onclick="closeModal()">×</button>
+        <button class="close-btn" onclick="closeModal()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
       </div>
       <div class="modal-body">
-        <pre><code id="modal-body"></code></pre>
+        <pre id="modal-body"></pre>
       </div>
     </div>
   </div>
 
   <script>
-    // ... (giữ nguyên phần JavaScript từ code cũ)
-    // Chỉ cần thay đổi chỗ addTableRow để ẩn empty-state
-    function addTableRow(index, success, status, startTime, endTime, duration, responseBody) {
-      document.getElementById('empty-state').style.display = 'none';
-      // ... rest of the function remains the same
+    // Sample API endpoints for quick testing
+    const sampleEndpoints = [
+      "https://jsonplaceholder.typicode.com/posts",
+      "https://jsonplaceholder.typicode.com/comments",
+      "https://jsonplaceholder.typicode.com/albums",
+      "https://jsonplaceholder.typicode.com/photos"
+    ];
+
+    // Set a sample endpoint on page load
+    window.onload = function () {
+      const randomEndpoint = sampleEndpoints[Math.floor(Math.random() * sampleEndpoints.length)];
+      document.getElementById('url').value = randomEndpoint;
+      document.getElementById('body').value = JSON.stringify({
+        title: "foo",
+        body: "bar",
+        userId: 1
+      }, null, 2);
+
+      // Focus on URL input
+      document.getElementById('url').focus();
+
+      // Initialize clear buttons visibility
+      toggleClearButton('url');
+      toggleClearButton('token');
+    };
+
+    function clearInput(inputId) {
+      document.getElementById(inputId).value = '';
+      // Focus lại vào input sau khi clear
+      document.getElementById(inputId).focus();
+      // Ẩn nút clear
+      toggleClearButton(inputId);
     }
-    
-    // Add scroll to top functionality
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    window.addEventListener('scroll', function() {
-      const scrollBtn = document.querySelector('.scroll-top-btn');
-      if (window.scrollY > 300) {
-        scrollBtn.style.display = 'flex';
+
+    function toggleClearButton(inputId) {
+      const input = document.getElementById(inputId);
+      const clearBtn = input.nextElementSibling;
+      if (input.value.trim() !== '') {
+        clearBtn.style.display = 'flex';
       } else {
-        scrollBtn.style.display = 'none';
+        clearBtn.style.display = 'none';
       }
+    }
+
+    // Add event listeners for real-time update
+    document.addEventListener('DOMContentLoaded', function () {
+      const urlInput = document.getElementById('url');
+      const tokenInput = document.getElementById('token');
+
+      urlInput.addEventListener('input', () => toggleClearButton('url'));
+      tokenInput.addEventListener('input', () => toggleClearButton('token'));
     });
+
+    function parseJsonToParams() {
+      const urlInput = document.getElementById('url');
+      const bodyText = document.getElementById('body').value.trim();
+
+      if (!bodyText) {
+        alert("Please enter JSON in the request body first!");
+        return;
+      }
+
+      let json;
+      try {
+        json = JSON.parse(bodyText);
+      } catch (e) {
+        alert("Invalid JSON format. Please check your request body.");
+        return;
+      }
+
+      const params = new URLSearchParams();
+      for (const key in json) {
+        if (json.hasOwnProperty(key)) {
+          params.append(key, json[key]);
+        }
+      }
+
+      const baseUrl = urlInput.value.split('?')[0];
+      urlInput.value = baseUrl + '?' + params.toString();
+
+      // Show feedback
+      showToast("Query parameters generated from JSON body");
+    }
+
+    function formatJsonBody() {
+      const bodyTextarea = document.getElementById('body');
+      const text = bodyTextarea.value.trim();
+
+      if (!text) return;
+
+      try {
+        const parsed = JSON.parse(text);
+        bodyTextarea.value = JSON.stringify(parsed, null, 2);
+        showToast("JSON formatted successfully!");
+      } catch (e) {
+        alert("Invalid JSON format. Cannot format.");
+      }
+    }
+
+    async function runRequests() {
+      let url = document.getElementById('url').value.trim();
+      const method = document.getElementById('method').value;
+      const token = document.getElementById('token').value.trim();
+      const bodyText = document.getElementById('body').value.trim();
+      const count = parseInt(document.getElementById('count').value);
+
+      if (!url) {
+        alert("Please enter a valid URL");
+        return;
+      }
+
+      if (count < 1 || count > 100) {
+        alert("Please enter a number between 1 and 100 for concurrent requests");
+        return;
+      }
+
+      // Show loading indicator
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('stats-container').style.display = 'none';
+
+      let body = null;
+      if (bodyText && method !== "GET") {
+        try {
+          body = JSON.stringify(JSON.parse(bodyText));
+        } catch (e) {
+          alert("Invalid JSON in request body");
+          document.getElementById('loading').style.display = 'none';
+          return;
+        }
+      }
+
+      // Clear previous results
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      const requests = [];
+
+      // Initialize stats
+      let successCount = 0;
+      let errorCount = 0;
+      let totalDuration = 0;
+      let minDuration = Infinity;
+      let maxDuration = 0;
+
+      // Create headers
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+
+      // Execute all requests simultaneously
+      for (let i = 0; i < count; i++) {
+        const requestIndex = i + 1;
+        const startTime = Date.now();
+
+        const fetchOptions = {
+          method,
+          headers,
+          mode: 'cors',
+          cache: 'no-cache'
+        };
+
+        if (body) fetchOptions.body = body;
+
+        const requestPromise = fetch(url, fetchOptions)
+          .then(async response => {
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            totalDuration += duration;
+            minDuration = Math.min(minDuration, duration);
+            maxDuration = Math.max(maxDuration, duration);
+
+            let responseText;
+            try {
+              responseText = await response.text();
+              try {
+                const parsed = JSON.parse(responseText);
+                responseText = JSON.stringify(parsed, null, 2);
+              } catch { }
+            } catch {
+              responseText = "No response body or unable to read";
+            }
+
+            const success = response.ok;
+            if (success) {
+              successCount++;
+            } else {
+              errorCount++;
+            }
+
+            // Update UI immediately
+            addTableRow(requestIndex, success, response.status, new Date(startTime), new Date(endTime), duration, responseText);
+
+            // Update stats as they come in
+            updateStats(successCount, errorCount, totalDuration, requestIndex, minDuration, maxDuration);
+
+            return { success, status: response.status };
+          })
+          .catch(error => {
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            totalDuration += duration;
+            minDuration = Math.min(minDuration, duration);
+            maxDuration = Math.max(maxDuration, duration);
+            errorCount++;
+
+            addTableRow(requestIndex, false, "Error", new Date(startTime), new Date(endTime), duration, error.toString());
+
+            updateStats(successCount, errorCount, totalDuration, requestIndex, minDuration, maxDuration);
+
+            return { success: false, status: "Error" };
+          });
+
+        requests.push(requestPromise);
+      }
+
+      // Wait for all requests to complete
+      await Promise.allSettled(requests);
+
+      // Hide loading indicator
+      document.getElementById('loading').style.display = 'none';
+
+      // Final stats update
+      updateStats(successCount, errorCount, totalDuration, count, minDuration, maxDuration);
+      document.getElementById('stats-container').style.display = 'grid';
+
+      // Scroll to show results
+      document.querySelector('.results-container').scrollTop = 0;
+    }
+
+    function addTableRow(index, success, status, startTime, endTime, duration, responseBody) {
+      const tbody = document.getElementById('table-body');
+
+      const tr = document.createElement('tr');
+
+      // Format start time
+      const startTimeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}:${startTime.getSeconds().toString().padStart(2, '0')}.${startTime.getMilliseconds().toString().padStart(3, '0')}`;
+
+      // Format end time
+      const endTimeStr = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}:${endTime.getSeconds().toString().padStart(2, '0')}.${endTime.getMilliseconds().toString().padStart(3, '0')}`;
+
+      tr.innerHTML = `
+    <td>${index}</td>
+    <td>
+      <span class="status-badge ${success ? 'badge-success' : 'badge-error'}">
+        ${success ? 'Success' : 'Failed'}
+      </span>
+    </td>
+    <td><strong>${status}</strong></td>
+    <td>${startTimeStr}</td>
+    <td>${endTimeStr}</td>
+    <td>${duration} ms</td>
+    <td>
+      <button class="view-btn" onclick="showModal('${encodeURIComponent(responseBody)}')">
+        View
+      </button>
+    </td>
+  `;
+
+      // Add to top of table (newest first)
+      if (tbody.firstChild) {
+        tbody.insertBefore(tr, tbody.firstChild);
+      } else {
+        tbody.appendChild(tr);
+      }
+    }
+
+    function updateStats(success, error, totalDuration, completed, minTime, maxTime) {
+      const total = completed;
+      const avgTime = completed > 0 ? Math.round(totalDuration / completed) : 0;
+
+      document.getElementById('stat-success').textContent = success;
+      document.getElementById('stat-error').textContent = error;
+      document.getElementById('stat-avg-time').textContent = avgTime;
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-min-time').textContent = minTime === Infinity ? 0 : minTime;
+      document.getElementById('stat-max-time').textContent = maxTime;
+
+      // Color the avg time based on performance
+      const avgTimeEl = document.getElementById('stat-avg-time');
+      avgTimeEl.className = 'stat-value';
+      if (avgTime < 200) avgTimeEl.classList.add('success');
+      else if (avgTime < 1000) avgTimeEl.classList.add('warning');
+      else avgTimeEl.classList.add('error');
+    }
+
+    function showModal(text) {
+      const modal = document.getElementById('modal');
+      const modalBody = document.getElementById('modal-body');
+
+      try {
+        const decodedText = decodeURIComponent(text);
+        const parsed = JSON.parse(decodedText);
+        modalBody.textContent = JSON.stringify(parsed, null, 2);
+      } catch {
+        modalBody.textContent = decodeURIComponent(text);
+      }
+
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    // Show toast notification
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+    font-size: 0.875rem;
+    animation: slideInUp 0.3s;
+  `;
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+
+    // Close modal when clicking outside or pressing Escape
+    window.addEventListener('click', (e) => {
+      if (e.target.id === 'modal') closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Add CSS for toast animations
+    const style = document.createElement('style');
+    style.textContent = `
+  @keyframes slideInUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  .warning {
+    color: var(--warning);
+  }
+`;
+    document.head.appendChild(style);
   </script>
 </body>
 
