@@ -5,516 +5,110 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>API Concurrent Tester</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS library -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
       --success: #06d6a0;
       --error: #ef476f;
       --warning: #ffd166;
-      --gray-50: #f8f9fa;
-      --gray-100: #f8f9fa;
-      --gray-200: #e9ecef;
-      --gray-300: #dee2e6;
-      --gray-600: #6c757d;
-      --gray-800: #343a40;
-      --border-radius: 6px;
-      --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f8fafc;
-      color: var(--gray-800);
-      min-height: 100vh;
-      font-size: 14px;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     }
 
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 16px;
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-      padding: 0 0 10px 0;
-      border-bottom: 1px solid var(--gray-200);
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
     }
 
-    h1 {
-      color: var(--gray-800);
-      margin-bottom: 4px;
-      font-size: 1.8rem;
-      font-weight: 600;
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
     }
 
-    .subtitle {
-      color: var(--gray-600);
-      font-size: 0.875rem;
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
     }
 
-    .main-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      height: calc(100vh - 120px);
+    /* Toast animations */
+    @keyframes slideInUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
-
-    @media (max-width: 1024px) {
-      .main-content {
-        grid-template-columns: 1fr;
-        height: auto;
-      }
-    }
-
-    .control-section,
-    .results-section {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .control-section {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      height: 100%;
-    }
-
-    .results-section {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      height: 100%;
-    }
-
-    .section-header {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--gray-800);
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 3fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group.full-width {
-      grid-column: span 2;
-    }
-
-    label {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--gray-800);
-      margin-bottom: 6px;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 0.9em;
-      color: #000;
-      background-color: #fff;
-      caret-color: #000;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      min-height: 40px;
-      box-sizing: border-box;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: 2px solid #007BFF;
-    }
-
-    textarea {
-      min-height: 100px;
-      resize: vertical;
-      font-family: 'SF Mono', 'Consolas', monospace;
-      font-size: 0.8125rem;
-      line-height: 1.4;
-    }
-
-    select {
-      height: 40px;
-      padding: 0 12px;
-    }
-
-    .input-with-clear {
-      position: relative;
-      width: 100%;
-    }
-
-    .input-with-clear input {
-      padding-right: 32px;
-      width: 100%;
-    }
-
-    .clear-btn {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: var(--gray-300);
-      color: var(--gray-600);
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      opacity: 0.7;
-      transition: all 0.15s;
-      user-select: none;
-      padding: 0;
-      border: none;
-      outline: none;
-    }
-
-    .clear-btn:hover {
-      background: var(--error);
-      color: white;
-      opacity: 1;
-    }
-
-    .clear-btn svg {
-      width: 10px;
-      height: 10px;
-      display: block;
-      fill: currentColor;
-    }
-
-    .input-with-clear input:not(:placeholder-shown)+.clear-btn {
-      display: flex;
-    }
-
-    .input-with-clear input:placeholder-shown+.clear-btn {
-      display: none;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .button-group .btn {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: var(--border-radius);
-      font-weight: 500;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
-    }
-
-    .btn-secondary {
-      background: var(--gray-200);
-      color: var(--gray-800);
-    }
-
-    .btn-secondary:hover {
-      background: var(--gray-300);
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-    }
-
-    .btn-block {
-      width: 100%;
-    }
-
-    .stats-row {
-      margin-top: 12px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-      padding: 16px;
-      background: var(--gray-100);
-      border-radius: var(--border-radius);
-    }
-
-    .stat-item {
-      text-align: center;
-      padding: 12px;
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-    }
-
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 600;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      color: var(--gray-600);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .success {
-      color: var(--success);
-    }
-
-    .error {
-      color: var(--error);
-    }
-
-    .warning {
-      color: var(--warning);
-    }
-
-    .results-container {
-      flex: 1;
-      overflow: auto;
-      padding: 0;
-    }
-
-    .results-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8125rem;
-    }
-
-    .results-table thead {
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 10;
-      box-shadow: 0 1px 0 var(--gray-200);
-    }
-
-    .results-table th {
-      padding: 12px;
-      text-align: left;
-      font-weight: 500;
-      color: var(--gray-600);
-      border-bottom: 1px solid var(--gray-200);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .results-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--gray-100);
-    }
-
-    .results-table tr:hover {
-      background: var(--gray-50);
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-
-    .badge-success {
-      background: rgba(6, 214, 160, 0.1);
-      color: var(--success);
-    }
-
-    .badge-error {
-      background: rgba(239, 71, 111, 0.1);
-      color: var(--error);
+    
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
     }
-
-    .view-btn {
-      padding: 4px 12px;
-      background: var(--gray-100);
-      border: 1px solid var(--gray-300);
-      border-radius: 4px;
-      font-size: 0.75rem;
-      color: var(--gray-700);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .view-btn:hover {
-      background: var(--gray-200);
-    }
-
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 40px 20px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: var(--border-radius);
-      margin-top: 20px;
-    }
-
-    .spinner {
-      border: 3px solid rgba(67, 97, 238, 0.1);
-      border-left: 3px solid var(--primary);
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 12px;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      animation: fadeIn 0.2s;
-    }
-
-    .modal-content {
-      background: white;
-      margin: 5% auto;
-      width: 90%;
-      max-width: 700px;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-lg);
-      overflow: hidden;
-      animation: slideIn 0.2s;
-    }
-
-    .modal-header {
-      padding: 16px 20px;
-      background: var(--gray-100);
-      border-bottom: 1px solid var(--gray-200);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-header h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--gray-600);
-      cursor: pointer;
-      line-height: 1;
-      padding: 0;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .close-btn svg {
-      width: 16px;
-      height: 16px;
-      fill: currentColor;
-    }
-
-    .modal-body {
-      padding: 20px;
-      max-height: 60vh;
-      overflow: auto;
-    }
-
-    pre {
-      margin: 0;
-      padding: 16px;
-      background: var(--gray-50);
-      border-radius: var(--border-radius);
-      font-family: 'SF Mono', 'Consolas', monospace;
-      font-size: 0.8125rem;
-      line-height: 1.4;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-
-    .footer {
-      text-align: center;
-      padding: 16px;
-      font-size: 0.75rem;
-      color: var(--gray-600);
-      border-top: 1px solid var(--gray-200);
-      margin-top: 20px;
-    }
-
   </style>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4361ee',
+            'primary-dark': '#3a56d4',
+            success: '#06d6a0',
+            error: '#ef476f',
+            warning: '#ffd166',
+          },
+          fontFamily: {
+            'sans': ['Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
+            'mono': ['SF Mono', 'Consolas', 'monospace'],
+          },
+          fontSize: {
+            '2xs': '0.625rem', // 10px
+            'xs': '0.75rem',   // 12px
+            'sm': '0.875rem',  // 14px
+            'base': '0.9375rem', // 15px
+            'lg': '1.125rem',  // 18px
+            'xl': '1.25rem',   // 20px
+          }
+        }
+      }
+    }
+  </script>
 </head>
 
-<body>
-  <div class="container">
-    <header>
-      <h3>API Concurrent Tester</h1>
-      <p class="subtitle">Send multiple requests to your API endpoint simultaneously</p>
+<body class="bg-gray-50 min-h-screen text-gray-800 text-sm">
+  <div class="container mx-auto px-3 py-2 max-w-7xl">
+    <header class="text-center mb-3 pb-2 border-b border-gray-200">
+      <h1 class="text-lg font-semibold text-gray-800">API Concurrent Tester</h1>
+      <p class="text-gray-600 text-xs">Send multiple requests to your API endpoint simultaneously</p>
     </header>
 
-    <div class="main-content">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 h-[calc(100vh-100px)]">
       <!-- Left Column: Controls -->
-      <div class="control-section">
-        <div class="section-header">Request Configuration</div>
+      <div class="bg-white rounded shadow p-3 flex flex-col h-full">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-base font-semibold text-gray-800">Request Configuration</h2>
+          <button class="px-2 py-1 bg-primary text-white text-xs rounded border border-primary hover:bg-primary-dark transition-colors"
+                  onclick="openUploadModal()">
+            Upload Input
+          </button>
+        </div>
 
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="method">HTTP Method</label>
-            <select id="method">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
+          <!-- HTTP Method - chiếm 1/4 -->
+          <div class="flex flex-col">
+            <label for="method" class="text-xs font-medium text-gray-800 mb-1">HTTP Method</label>
+            <select id="method" class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
               <option>GET</option>
               <option>POST</option>
               <option>PUT</option>
@@ -523,103 +117,122 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="url">API Endpoint URL</label>
-            <div class="input-with-clear">
-              <input type="text" id="url" placeholder="https://jsonplaceholder.typicode.com/posts">
-              <button class="clear-btn" onclick="clearInput('url')" title="Clear">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          <!-- Concurrent Requests - chiếm 1/4 -->
+          <div class="flex flex-col">
+            <label for="count" class="text-xs font-medium text-gray-800 mb-1">Concurrent Requests</label>
+            <input type="number" id="count" value="5" min="1" max="100"
+                   class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+          </div>
+
+          <!-- API Endpoint URL - chiếm 2/4 -->
+          <div class="flex flex-col md:col-span-2">
+            <label for="url" class="text-xs font-medium text-gray-800 mb-1">API Endpoint URL</label>
+            <div class="relative">
+              <input type="text" id="url" placeholder="https://jsonplaceholder.typicode.com/posts"
+                     class="w-full px-2 py-1.5 pr-6 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+              <button class="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center opacity-70 hover:bg-error hover:text-white transition-colors"
+                      onclick="clearInput('url')" title="Clear">
+                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
               </button>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="count">Concurrent Requests</label>
-            <input type="number" id="count" value="5" min="1" max="100">
-          </div>
-
-          <div class="form-group">
-            <label for="token">Authorization Token (optional)</label>
-            <div class="input-with-clear">
-              <input type="text" id="token" placeholder="Bearer token or API key">
-              <button class="clear-btn" onclick="clearInput('token')" title="Clear">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          <!-- Authorization Token - chiếm 4/4 (full width) -->
+          <div class="flex flex-col md:col-span-4">
+            <label for="token" class="text-xs font-medium text-gray-800 mb-1">Authorization Token (optional)</label>
+            <div class="relative">
+              <input type="text" id="token" placeholder="Bearer token or API key"
+                     class="w-full px-2 py-1.5 pr-6 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+              <button class="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center opacity-70 hover:bg-error hover:text-white transition-colors"
+                      onclick="clearInput('token')" title="Clear">
+                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
               </button>
             </div>
           </div>
 
-          <div class="form-group full-width">
-            <label for="body">Request Body (JSON, optional for POST/PUT/PATCH)</label>
-            <textarea id="body" placeholder='{"key": "value"}'></textarea>
+          <!-- Request Body - chiếm 4/4 (full width) -->
+          <div class="flex flex-col md:col-span-4">
+            <div class="flex justify-between items-center mb-1">
+              <label for="body" class="text-xs font-medium text-gray-800">Request Body (JSON, optional for POST/PUT/PATCH)</label>
+              <div class="flex items-center gap-1">
+                <input type="checkbox" id="useArrayInputs" class="w-3 h-3">
+                <label for="useArrayInputs" class="text-2xs text-gray-600">Use array inputs</label>
+              </div>
+            </div>
+            <textarea id="body" placeholder='{"key": "value"} or [{"key": "value1"}, {"key": "value2"}]'
+                      class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent font-mono text-xs min-h-[200px] resize-y"></textarea>
+            <p class="text-2xs text-gray-600 mt-1" id="array-info">When "Use array inputs" is checked, each array element will be used as input for separate requests</p>
           </div>
         </div>
 
-        <div class="button-group">
-          <button class="btn btn-secondary" onclick="parseJsonToParams()">Convert to Query Params</button>
-          <button class="btn btn-secondary" onclick="formatJsonBody()">Format JSON</button>
-          <button class="btn btn-primary" onclick="runRequests()">Run Concurrent Tests</button>
+        <div class="flex gap-2 mt-1">
+          <button class="flex-1 px-3 py-1.5 bg-gray-200 text-gray-800 font-medium rounded text-xs hover:bg-gray-300 transition-colors"
+                  onclick="formatJsonBody()">
+            Format JSON
+          </button>
+          <button class="flex-1 px-3 py-1.5 bg-primary text-white font-medium rounded text-xs hover:bg-primary-dark transition-colors"
+                  onclick="runRequests()">
+            Run Concurrent Tests
+          </button>
         </div>
 
-        <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <p>Sending concurrent requests...</p>
+        <div class="hidden text-center p-3 bg-white/90 rounded mt-3" id="loading">
+          <div class="w-6 h-6 border-2 border-primary/10 border-l-primary rounded-full animate-spin mx-auto mb-2"></div>
+          <p class="text-gray-600 text-xs">Sending concurrent requests...</p>
         </div>
 
-        <div class="stats-row" id="stats-container" style="display: none;">
-          <div class="stat-item">
-            <div class="stat-value success" id="stat-success">0</div>
-            <div class="stat-label">Successful</div>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-gray-100 rounded mt-2 hidden" id="stats-container">
+          <div class="bg-white p-2 rounded shadow text-center">
+            <div class="text-base font-semibold text-success" id="stat-success">0</div>
+            <div class="text-2xs text-gray-600 uppercase tracking-wider">Successful</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value error" id="stat-error">0</div>
-            <div class="stat-label">Failed</div>
+          <div class="bg-white p-2 rounded shadow text-center">
+            <div class="text-base font-semibold text-error" id="stat-error">0</div>
+            <div class="text-2xs text-gray-600 uppercase tracking-wider">Failed</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="stat-avg-time">0</div>
-            <div class="stat-label">Avg Time (ms)</div>
+          <div class="bg-white p-2 rounded shadow text-center">
+            <div class="text-base font-semibold" id="stat-avg-time">0</div>
+            <div class="text-2xs text-gray-600 uppercase tracking-wider">Avg Time (ms)</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="stat-total">0</div>
-            <div class="stat-label">Total Requests</div>
+          <div class="bg-white p-2 rounded shadow text-center">
+            <div class="text-base font-semibold" id="stat-total">0</div>
+            <div class="text-2xs text-gray-600 uppercase tracking-wider">Total</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="stat-min-time">0</div>
-            <div class="stat-label">Min Time (ms)</div>
+          <div class="bg-white p-2 rounded shadow text-center">
+            <div class="text-base font-semibold" id="stat-min-time">0</div>
+            <div class="text-2xs text-gray-600 uppercase tracking-wider">Min (ms)</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="stat-max-time">0</div>
-            <div class="stat-label">Max Time (ms)</div>
+          <div class="bg-white p-2 rounded shadow text-center">
+            <div class="text-base font-semibold" id="stat-max-time">0</div>
+            <div class="text-2xs text-gray-600 uppercase tracking-wider">Max (ms)</div>
           </div>
         </div>
-
       </div>
 
       <!-- Right Column: Results -->
-      <div class="results-section">
-        <div class="section-header" style="padding: 16px 20px; margin: 0; border-bottom: 1px solid var(--gray-200);">
-          Test Results
+      <div class="bg-white rounded shadow overflow-hidden flex flex-col h-full">
+        <div class="px-3 py-2 border-b border-gray-200">
+          <h2 class="text-base font-semibold text-gray-800">Test Results</h2>
         </div>
 
-        <div class="results-container">
-          <table class="results-table">
-            <thead>
+        <div class="flex-1 overflow-auto">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-white z-10 border-b border-gray-200">
               <tr>
-                <th>#</th>
-                <th>Status</th>
-                <th>Code</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Duration (ms)</th>
-                <th>Action</th>
+                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">#</th>
+                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">Status</th>
+                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">Code</th>
+                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">Start Time</th>
+                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">End Time</th>
+                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">Duration</th>
+                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">Action</th>
               </tr>
             </thead>
-            <tbody id="table-body">
+            <tbody id="table-body" class="divide-y divide-gray-100">
               <!-- Results will be populated here -->
             </tbody>
           </table>
@@ -629,19 +242,99 @@
   </div>
 
   <!-- Modal for response details -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Response Details</h3>
-        <button class="close-btn" onclick="closeModal()">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-          </svg>
-        </button>
+  <div id="modal" class="fixed inset-0 z-50 hidden bg-black/50">
+    <div class="flex items-center justify-center min-h-screen p-3">
+      <div class="bg-white rounded shadow w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center px-3 py-2 border-b border-gray-200 bg-gray-100">
+          <h3 class="text-sm font-semibold text-gray-800">Response Details</h3>
+          <button class="text-gray-600 hover:text-gray-800" onclick="closeModal()">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-3 overflow-auto flex-1">
+          <pre id="modal-body" class="bg-gray-50 p-2 rounded font-mono text-xs whitespace-pre-wrap break-words max-h-[60vh]"></pre>
+        </div>
       </div>
-      <div class="modal-body">
-        <pre id="modal-body"></pre>
+    </div>
+  </div>
+
+  <!-- Modal for cURL command -->
+  <div id="curl-modal" class="fixed inset-0 z-50 hidden bg-black/50">
+    <div class="flex items-center justify-center min-h-screen p-3">
+      <div class="bg-white rounded shadow w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center px-3 py-2 border-b border-gray-200 bg-gray-100">
+          <h3 class="text-sm font-semibold text-gray-800">cURL Command</h3>
+          <div class="flex items-center gap-1">
+            <button class="px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary-dark transition-colors"
+                    onclick="copyCurlToClipboard()">
+              Copy
+            </button>
+            <button class="text-gray-600 hover:text-gray-800 ml-1" onclick="closeCurlModal()">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="p-3 overflow-auto flex-1">
+          <pre id="curl-body" class="bg-gray-900 text-gray-100 p-2 rounded font-mono text-2xs overflow-auto"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for upload XLSX and mapping -->
+  <div id="upload-modal" class="fixed inset-0 z-50 hidden bg-black/50">
+    <div class="flex items-center justify-center min-h-screen p-3">
+      <div class="bg-white rounded shadow w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center px-3 py-2 border-b border-gray-200 bg-gray-100">
+          <h3 class="text-sm font-semibold text-gray-800">Upload Excel Data and Map to JSON</h3>
+          <button class="text-gray-600 hover:text-gray-800" onclick="closeUploadModal()">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-3 overflow-auto flex-1">
+          <div class="mb-3">
+            <label for="jsonMapping" class="block text-xs font-medium text-gray-800 mb-1">JSON Mapping Template</label>
+            <textarea id="jsonMapping" class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent font-mono text-xs min-h-[100px]">{
+  "title": "static text",
+  "memberCode": "from_upload",
+  "email": "from_upload"
+}</textarea>
+            <p class="text-2xs text-gray-600 mt-1">Use "from_upload" to map values from Excel columns. Use static values for fixed data.</p>
+            <div class="bg-gray-100 px-2 py-1 rounded mt-1 font-mono text-2xs">
+              Example: {"field1": "static value", "field2": "from_upload"}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="xlsxFile" class="block text-xs font-medium text-gray-800 mb-1">Upload XLSX File</label>
+            <input type="file" id="xlsxFile" accept=".xlsx" 
+                   class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+          </div>
+
+          <div class="border border-gray-200 rounded overflow-hidden hidden" id="upload-preview">
+            <div class="bg-gray-100 px-2 py-1.5 border-b border-gray-200 font-medium text-xs">Preview Output</div>
+            <div class="p-2 bg-gray-50 max-h-[200px] overflow-auto">
+              <pre id="upload-output" class="bg-white p-2 rounded font-mono text-xs"></pre>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mt-3">
+            <button class="flex-1 px-3 py-1.5 bg-gray-200 text-gray-800 font-medium rounded text-xs hover:bg-gray-300 transition-colors"
+                    onclick="closeUploadModal()">
+              Cancel
+            </button>
+            <button class="flex-1 px-3 py-1.5 bg-primary text-white font-medium rounded text-xs hover:bg-primary-dark transition-colors"
+                    onclick="processUpload()">
+              Process and Apply
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -657,6 +350,10 @@
 
     // Store response data separately
     const responseData = new Map();
+    // Store cURL commands for each request
+    const curlCommands = new Map();
+    // Store input data for each request (for array inputs)
+    const inputData = new Map();
 
     // Set a sample endpoint on page load
     window.onload = function () {
@@ -668,6 +365,11 @@
         userId: 1
       }, null, 2);
 
+      // Add event listener for array inputs checkbox
+      document.getElementById('useArrayInputs').addEventListener('change', function() {
+        updateBodyPlaceholder();
+      });
+
       // Focus on URL input
       document.getElementById('url').focus();
 
@@ -675,6 +377,20 @@
       toggleClearButton('url');
       toggleClearButton('token');
     };
+
+    function updateBodyPlaceholder() {
+      const useArrayInputs = document.getElementById('useArrayInputs').checked;
+      const bodyTextarea = document.getElementById('body');
+      const arrayInfo = document.getElementById('array-info');
+      
+      if (useArrayInputs) {
+        bodyTextarea.placeholder = '[{"key": "value1"}, {"key": "value2"}, {"key": "value3"}]';
+        arrayInfo.textContent = 'When "Use array inputs" is checked, each array element will be used as input for separate requests. Number of requests = array length.';
+      } else {
+        bodyTextarea.placeholder = '{"key": "value"}';
+        arrayInfo.textContent = 'When "Use array inputs" is checked, each array element will be used as input for separate requests';
+      }
+    }
 
     function clearInput(inputId) {
       document.getElementById(inputId).value = '';
@@ -686,11 +402,11 @@
 
     function toggleClearButton(inputId) {
       const input = document.getElementById(inputId);
-      const clearBtn = input.nextElementSibling;
+      const clearBtn = input.parentNode.querySelector('button');
       if (input.value.trim() !== '') {
-        clearBtn.style.display = 'flex';
+        clearBtn.classList.remove('hidden');
       } else {
-        clearBtn.style.display = 'none';
+        clearBtn.classList.add('hidden');
       }
     }
 
@@ -702,37 +418,6 @@
       urlInput.addEventListener('input', () => toggleClearButton('url'));
       tokenInput.addEventListener('input', () => toggleClearButton('token'));
     });
-
-    function parseJsonToParams() {
-      const urlInput = document.getElementById('url');
-      const bodyText = document.getElementById('body').value.trim();
-
-      if (!bodyText) {
-        alert("Please enter JSON in the request body first!");
-        return;
-      }
-
-      let json;
-      try {
-        json = JSON.parse(bodyText);
-      } catch (e) {
-        alert("Invalid JSON format. Please check your request body.");
-        return;
-      }
-
-      const params = new URLSearchParams();
-      for (const key in json) {
-        if (json.hasOwnProperty(key)) {
-          params.append(key, json[key]);
-        }
-      }
-
-      const baseUrl = urlInput.value.split('?')[0];
-      urlInput.value = baseUrl + '?' + params.toString();
-
-      // Show feedback
-      showToast("Query parameters generated from JSON body");
-    }
 
     function formatJsonBody() {
       const bodyTextarea = document.getElementById('body');
@@ -755,36 +440,68 @@
       const token = document.getElementById('token').value.trim();
       const bodyText = document.getElementById('body').value.trim();
       const count = parseInt(document.getElementById('count').value);
+      const useArrayInputs = document.getElementById('useArrayInputs').checked;
 
       if (!url) {
         alert("Please enter a valid URL");
         return;
       }
 
-      if (count < 1 || count > 100) {
-        alert("Please enter a number between 1 and 100 for concurrent requests");
-        return;
-      }
-
       // Show loading indicator
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('stats-container').style.display = 'none';
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('stats-container').classList.add('hidden');
 
-      let body = null;
-      if (bodyText && method !== "GET") {
+      // Parse request body
+      let bodyArray = null;
+      let bodyObject = null;
+      
+      if (bodyText) {
         try {
-          body = JSON.stringify(JSON.parse(bodyText));
+          const parsed = JSON.parse(bodyText);
+          
+          if (useArrayInputs && Array.isArray(parsed)) {
+            bodyArray = parsed;
+            if (bodyArray.length === 0) {
+              alert("Array is empty. Please provide array with data.");
+              document.getElementById('loading').classList.add('hidden');
+              return;
+            }
+            showToast(`Using array inputs: ${bodyArray.length} requests will be made`);
+          } else if (useArrayInputs && !Array.isArray(parsed)) {
+            alert("When 'Use array inputs' is checked, request body must be a JSON array");
+            document.getElementById('loading').classList.add('hidden');
+            return;
+          } else {
+            bodyObject = parsed;
+          }
         } catch (e) {
           alert("Invalid JSON in request body");
-          document.getElementById('loading').style.display = 'none';
+          document.getElementById('loading').classList.add('hidden');
           return;
         }
+      }
+
+      // Determine actual request count
+      let actualCount = count;
+      if (useArrayInputs && bodyArray) {
+        actualCount = Math.min(bodyArray.length, count);
+        if (actualCount < bodyArray.length) {
+          showToast(`Using first ${actualCount} elements from array (limited by concurrent requests setting)`);
+        }
+      }
+
+      if (actualCount < 1 || actualCount > 100) {
+        alert("Please enter a number between 1 and 100 for concurrent requests");
+        document.getElementById('loading').classList.add('hidden');
+        return;
       }
 
       // Clear previous results
       const tbody = document.getElementById('table-body');
       tbody.innerHTML = '';
       responseData.clear();
+      curlCommands.clear();
+      inputData.clear();
 
       const requests = [];
 
@@ -802,9 +519,49 @@
       }
 
       // Execute all requests simultaneously
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < actualCount; i++) {
         const requestIndex = i + 1;
         const startTime = Date.now();
+
+        // Determine body for this specific request
+        let requestBody = null;
+        let queryParams = null;
+        
+        if (useArrayInputs && bodyArray && i < bodyArray.length) {
+          // Use array element as body
+          requestBody = JSON.stringify(bodyArray[i]);
+          inputData.set(requestIndex, bodyArray[i]);
+        } else if (bodyObject) {
+          // Use single object as body
+          requestBody = JSON.stringify(bodyObject);
+          inputData.set(requestIndex, bodyObject);
+        }
+
+        // TỰ ĐỘNG convert JSON body sang query params nếu method là GET và có body
+        if (requestBody && method === "GET") {
+          try {
+            const json = JSON.parse(requestBody);
+            const params = new URLSearchParams();
+            for (const key in json) {
+              if (json.hasOwnProperty(key)) {
+                params.append(key, json[key]);
+              }
+            }
+            queryParams = params.toString();
+          } catch (e) {
+            // Nếu JSON không hợp lệ, vẫn thực hiện request GET bình thường
+            console.warn("Invalid JSON in request body for GET request, ignoring body");
+          }
+        }
+
+        // Tạo URL với query params nếu có
+        let requestUrl = url;
+        if (queryParams) {
+          requestUrl = url.split('?')[0];
+          const existingParams = url.includes('?') ? url.split('?')[1] : '';
+          const combinedParams = existingParams ? `${existingParams}&${queryParams}` : queryParams;
+          requestUrl = `${requestUrl}?${combinedParams}`;
+        }
 
         const fetchOptions = {
           method,
@@ -813,9 +570,16 @@
           cache: 'no-cache'
         };
 
-        if (body) fetchOptions.body = body;
+        // Chỉ thêm body nếu không phải GET hoặc GET nhưng có query params
+        if (requestBody && method !== "GET") {
+          fetchOptions.body = requestBody;
+        }
 
-        const requestPromise = fetch(url, fetchOptions)
+        // Tạo cURL command
+        const curlCommand = generateCurlCommand(requestUrl, method, headers, requestBody);
+        curlCommands.set(requestIndex, curlCommand);
+
+        const requestPromise = fetch(requestUrl, fetchOptions)
           .then(async response => {
             const endTime = Date.now();
             const duration = endTime - startTime;
@@ -880,20 +644,51 @@
       await Promise.allSettled(requests);
 
       // Hide loading indicator
-      document.getElementById('loading').style.display = 'none';
+      document.getElementById('loading').classList.add('hidden');
 
       // Final stats update
-      updateStats(successCount, errorCount, totalDuration, count, minDuration, maxDuration);
-      document.getElementById('stats-container').style.display = 'grid';
+      updateStats(successCount, errorCount, totalDuration, actualCount, minDuration, maxDuration);
+      document.getElementById('stats-container').classList.remove('hidden');
 
       // Scroll to show results
-      document.querySelector('.results-container').scrollTop = 0;
+      document.querySelector('.overflow-auto').scrollTop = 0;
+    }
+
+    function generateCurlCommand(url, method, headers, body) {
+      let curl = `curl -X ${method} "${url}" \\\n`;
+
+      // Add headers
+      Object.entries(headers).forEach(([key, value]) => {
+        if (key === 'Authorization' && value.startsWith('Bearer ')) {
+          curl += `  -H "${key}: ${value}" \\\n`;
+        } else if (key !== 'Content-Type' || (key === 'Content-Type' && value !== 'application/json')) {
+          curl += `  -H "${key}: ${value}" \\\n`;
+        }
+      });
+
+      // Add Content-Type header for JSON if not GET
+      if (method !== 'GET' && body) {
+        curl += `  -H "Content-Type: application/json" \\\n`;
+      }
+
+      // Add body data if exists
+      if (body && method !== 'GET') {
+        // Escape quotes and newlines for cURL
+        const escapedBody = body.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        curl += `  -d "${escapedBody}"`;
+      } else {
+        // Remove trailing backslash
+        curl = curl.slice(0, -3);
+      }
+
+      return curl;
     }
 
     function addTableRow(index, success, status, startTime, endTime, duration) {
       const tbody = document.getElementById('table-body');
 
       const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50';
 
       // Format start time
       const startTimeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}:${startTime.getSeconds().toString().padStart(2, '0')}.${startTime.getMilliseconds().toString().padStart(3, '0')}`;
@@ -902,28 +697,51 @@
       const endTimeStr = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}:${endTime.getSeconds().toString().padStart(2, '0')}.${endTime.getMilliseconds().toString().padStart(3, '0')}`;
 
       tr.innerHTML = `
-        <td>${index}</td>
-        <td>
-          <span class="status-badge ${success ? 'badge-success' : 'badge-error'}">
-            ${success ? 'Success' : 'Failed'}
+        <td class="px-2 py-1.5">${index}</td>
+        <td class="px-2 py-1.5">
+          <span class="inline-block px-1.5 py-0.5 text-2xs font-medium rounded-full ${success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+            ${success ? '✓' : '✗'}
           </span>
         </td>
-        <td><strong>${status}</strong></td>
-        <td>${startTimeStr}</td>
-        <td>${endTimeStr}</td>
-        <td>${duration} ms</td>
-        <td>
-          <button class="view-btn" data-index="${index}">
-            View
-          </button>
+        <td class="px-2 py-1.5 font-semibold">${status}</td>
+        <td class="px-2 py-1.5 text-2xs">${startTimeStr}</td>
+        <td class="px-2 py-1.5 text-2xs">${endTimeStr}</td>
+        <td class="px-2 py-1.5">${duration}ms</td>
+        <td class="px-2 py-1.5">
+          <div class="flex gap-1">
+            <button class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-2xs text-gray-700 hover:bg-gray-200 transition-colors view-btn" data-index="${index}">
+              View
+            </button>
+            <button class="px-1.5 py-0.5 bg-blue-50 border border-blue-200 rounded text-2xs text-blue-700 hover:bg-blue-100 transition-colors curl-btn" data-index="${index}">
+              cURL
+            </button>
+            <button class="px-1.5 py-0.5 bg-purple-50 border border-purple-200 rounded text-2xs text-purple-700 hover:bg-purple-100 transition-colors input-btn" data-index="${index}">
+              Input
+            </button>
+          </div>
         </td>
       `;
 
-      // Add event listener to the button
+      // Add event listener to the view button
       const viewBtn = tr.querySelector('.view-btn');
-      viewBtn.addEventListener('click', function() {
+      viewBtn.addEventListener('click', function () {
         const dataIndex = this.getAttribute('data-index');
-        showModal(responseData.get(parseInt(dataIndex)) || "No response data available");
+        showModal(responseData.get(parseInt(dataIndex)) || "No response data available", "Response Details");
+      });
+
+      // Add event listener to the cURL button
+      const curlBtn = tr.querySelector('.curl-btn');
+      curlBtn.addEventListener('click', function () {
+        const dataIndex = this.getAttribute('data-index');
+        showCurlModal(curlCommands.get(parseInt(dataIndex)) || "No cURL command available");
+      });
+
+      // Add event listener to the input button
+      const inputBtn = tr.querySelector('.input-btn');
+      inputBtn.addEventListener('click', function () {
+        const dataIndex = this.getAttribute('data-index');
+        const input = inputData.get(parseInt(dataIndex));
+        showModal(input ? JSON.stringify(input, null, 2) : "No input data available", "Input Data");
       });
 
       // Add to top of table (newest first)
@@ -947,15 +765,19 @@
 
       // Color the avg time based on performance
       const avgTimeEl = document.getElementById('stat-avg-time');
-      avgTimeEl.className = 'stat-value';
-      if (avgTime < 200) avgTimeEl.classList.add('success');
-      else if (avgTime < 1000) avgTimeEl.classList.add('warning');
-      else avgTimeEl.classList.add('error');
+      avgTimeEl.className = 'text-base font-semibold';
+      if (avgTime < 200) avgTimeEl.classList.add('text-success');
+      else if (avgTime < 1000) avgTimeEl.classList.add('text-warning');
+      else avgTimeEl.classList.add('text-error');
     }
 
-    function showModal(responseText) {
+    function showModal(responseText, title = "Response Details") {
       const modal = document.getElementById('modal');
       const modalBody = document.getElementById('modal-body');
+      const modalTitle = modal.querySelector('h3');
+
+      // Update modal title
+      modalTitle.textContent = title;
 
       // Try to format if it's JSON
       if (responseText) {
@@ -974,34 +796,43 @@
           modalBody.textContent = responseText;
         }
       } else {
-        modalBody.textContent = "No response data available";
+        modalBody.textContent = "No data available";
       }
 
-      modal.style.display = 'block';
+      modal.classList.remove('hidden');
     }
 
     function closeModal() {
-      document.getElementById('modal').style.display = 'none';
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    function showCurlModal(curlCommand) {
+      const modal = document.getElementById('curl-modal');
+      const curlBody = document.getElementById('curl-body');
+
+      curlBody.textContent = curlCommand;
+      modal.classList.remove('hidden');
+    }
+
+    function closeCurlModal() {
+      document.getElementById('curl-modal').classList.add('hidden');
+    }
+
+    function copyCurlToClipboard() {
+      const curlText = document.getElementById('curl-body').textContent;
+      navigator.clipboard.writeText(curlText).then(() => {
+        showToast("cURL command copied to clipboard!");
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+      });
     }
 
     // Show toast notification
     function showToast(message) {
       const toast = document.createElement('div');
       toast.textContent = message;
-      toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: var(--primary);
-        color: white;
-        padding: 12px 20px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-lg);
-        z-index: 1001;
-        font-size: 0.875rem;
-        animation: slideInUp 0.3s;
-      `;
-
+      toast.className = 'fixed bottom-3 right-3 bg-primary text-white px-3 py-2 rounded shadow z-50 text-xs animate-slideInUp';
+      
       document.body.appendChild(toast);
 
       setTimeout(() => {
@@ -1013,33 +844,111 @@
     // Close modal when clicking outside or pressing Escape
     window.addEventListener('click', (e) => {
       if (e.target.id === 'modal') closeModal();
+      if (e.target.id === 'curl-modal') closeCurlModal();
+      if (e.target.id === 'upload-modal') closeUploadModal();
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') {
+        closeModal();
+        closeCurlModal();
+        closeUploadModal();
+      }
     });
 
-    // Add CSS for toast animations
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInUp {
-        from { transform: translateY(100%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+    // Upload modal functions
+    function openUploadModal() {
+      document.getElementById('upload-modal').classList.remove('hidden');
+    }
+
+    function closeUploadModal() {
+      document.getElementById('upload-modal').classList.add('hidden');
+    }
+
+    function processUpload() {
+      const fileInput = document.getElementById('xlsxFile');
+      const jsonMappingText = document.getElementById('jsonMapping').value;
+      const output = document.getElementById('upload-output');
+      const preview = document.getElementById('upload-preview');
+      const useArrayInputs = document.getElementById('useArrayInputs');
+
+      if (!fileInput.files.length) {
+        alert("Please upload an XLSX file!");
+        return;
       }
-      @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
+
+      let mapping;
+      try {
+        mapping = JSON.parse(jsonMappingText);
+      } catch (err) {
+        alert("Invalid JSON format in mapping template!");
+        return;
       }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes slideIn {
-        from { transform: translateY(-20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-    `;
-    document.head.appendChild(style);
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+          const result = jsonData.map(rowObj => {
+            const mapped = {};
+            for (const key in mapping) {
+              if (mapping[key] === "from_upload") {
+                // Map from uploaded file - using the same key name
+                mapped[key] = rowObj[key] !== undefined ? rowObj[key] : null;
+              } else {
+                // Keep static value from mapping
+                mapped[key] = mapping[key];
+              }
+            }
+            return mapped;
+          });
+
+          // Show preview
+          output.textContent = JSON.stringify(result, null, 2);
+          preview.classList.remove('hidden');
+
+          // Show success message
+          showToast(`Processed ${result.length} rows from Excel file`);
+
+          // Ask user if they want to apply the result to request body
+          if (confirm(`Processed ${result.length} rows. Do you want to use this as request body?`)) {
+            const bodyTextarea = document.getElementById('body');
+
+            if (result.length > 1) {
+              // If multiple rows, automatically check "Use array inputs"
+              useArrayInputs.checked = true;
+              updateBodyPlaceholder();
+              bodyTextarea.value = JSON.stringify(result, null, 2);
+            } else {
+              bodyTextarea.value = JSON.stringify(result[0], null, 2);
+            }
+
+            // Also update concurrent requests count to match data rows
+            const countInput = document.getElementById('count');
+            if (confirm(`Update concurrent requests count to ${result.length}?`)) {
+              countInput.value = Math.min(result.length, 100); // Max 100
+            }
+
+            closeUploadModal();
+            showToast("Request body updated with uploaded data");
+          }
+
+        } catch (error) {
+          alert("Error processing Excel file: " + error.message);
+          console.error(error);
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
   </script>
 </body>
 
