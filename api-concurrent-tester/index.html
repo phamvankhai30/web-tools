@@ -12,6 +12,7 @@
       --success: #06d6a0;
       --error: #ef476f;
       --warning: #ffd166;
+      --gray-50: #f8f9fa;
       --gray-100: #f8f9fa;
       --gray-200: #e9ecef;
       --gray-300: #dee2e6;
@@ -54,7 +55,7 @@
     h1 {
       color: var(--gray-800);
       margin-bottom: 4px;
-      font-size: 1.0rem;
+      font-size: 1.8rem;
       font-weight: 600;
     }
 
@@ -199,9 +200,7 @@
 
     .clear-btn:hover {
       background: var(--error);
-      /* Thay đổi từ var(--gray-400) thành var(--error) */
-      color: rgb(0, 0, 0);
-      /* Đổi màu chữ thành trắng khi hover */
+      color: white;
       opacity: 1;
     }
 
@@ -223,7 +222,7 @@
     .button-group {
       display: flex;
       gap: 12px;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     .button-group .btn {
@@ -265,6 +264,7 @@
     }
 
     .stats-row {
+      margin-top: 12px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
@@ -302,6 +302,10 @@
 
     .error {
       color: var(--error);
+    }
+
+    .warning {
+      color: var(--warning);
     }
 
     .results-container {
@@ -491,13 +495,14 @@
       border-top: 1px solid var(--gray-200);
       margin-top: 20px;
     }
+
   </style>
 </head>
 
 <body>
   <div class="container">
     <header>
-      <h1>API Concurrent Tester</h1>
+      <h3>API Concurrent Tester</h1>
       <p class="subtitle">Send multiple requests to your API endpoint simultaneously</p>
     </header>
 
@@ -650,6 +655,9 @@
       "https://jsonplaceholder.typicode.com/photos"
     ];
 
+    // Store response data separately
+    const responseData = new Map();
+
     // Set a sample endpoint on page load
     window.onload = function () {
       const randomEndpoint = sampleEndpoints[Math.floor(Math.random() * sampleEndpoints.length)];
@@ -776,6 +784,7 @@
       // Clear previous results
       const tbody = document.getElementById('table-body');
       tbody.innerHTML = '';
+      responseData.clear();
 
       const requests = [];
 
@@ -817,10 +826,13 @@
             let responseText;
             try {
               responseText = await response.text();
+              // Try to parse as JSON for formatting
               try {
                 const parsed = JSON.parse(responseText);
                 responseText = JSON.stringify(parsed, null, 2);
-              } catch { }
+              } catch {
+                // Keep as is if not JSON
+              }
             } catch {
               responseText = "No response body or unable to read";
             }
@@ -832,8 +844,11 @@
               errorCount++;
             }
 
+            // Store response data with index as key
+            responseData.set(requestIndex, responseText);
+
             // Update UI immediately
-            addTableRow(requestIndex, success, response.status, new Date(startTime), new Date(endTime), duration, responseText);
+            addTableRow(requestIndex, success, response.status, new Date(startTime), new Date(endTime), duration);
 
             // Update stats as they come in
             updateStats(successCount, errorCount, totalDuration, requestIndex, minDuration, maxDuration);
@@ -848,7 +863,10 @@
             maxDuration = Math.max(maxDuration, duration);
             errorCount++;
 
-            addTableRow(requestIndex, false, "Error", new Date(startTime), new Date(endTime), duration, error.toString());
+            // Store error response
+            responseData.set(requestIndex, error.toString());
+
+            addTableRow(requestIndex, false, "Error", new Date(startTime), new Date(endTime), duration);
 
             updateStats(successCount, errorCount, totalDuration, requestIndex, minDuration, maxDuration);
 
@@ -872,7 +890,7 @@
       document.querySelector('.results-container').scrollTop = 0;
     }
 
-    function addTableRow(index, success, status, startTime, endTime, duration, responseBody) {
+    function addTableRow(index, success, status, startTime, endTime, duration) {
       const tbody = document.getElementById('table-body');
 
       const tr = document.createElement('tr');
@@ -884,22 +902,29 @@
       const endTimeStr = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}:${endTime.getSeconds().toString().padStart(2, '0')}.${endTime.getMilliseconds().toString().padStart(3, '0')}`;
 
       tr.innerHTML = `
-    <td>${index}</td>
-    <td>
-      <span class="status-badge ${success ? 'badge-success' : 'badge-error'}">
-        ${success ? 'Success' : 'Failed'}
-      </span>
-    </td>
-    <td><strong>${status}</strong></td>
-    <td>${startTimeStr}</td>
-    <td>${endTimeStr}</td>
-    <td>${duration} ms</td>
-    <td>
-      <button class="view-btn" onclick="showModal('${encodeURIComponent(responseBody)}')">
-        View
-      </button>
-    </td>
-  `;
+        <td>${index}</td>
+        <td>
+          <span class="status-badge ${success ? 'badge-success' : 'badge-error'}">
+            ${success ? 'Success' : 'Failed'}
+          </span>
+        </td>
+        <td><strong>${status}</strong></td>
+        <td>${startTimeStr}</td>
+        <td>${endTimeStr}</td>
+        <td>${duration} ms</td>
+        <td>
+          <button class="view-btn" data-index="${index}">
+            View
+          </button>
+        </td>
+      `;
+
+      // Add event listener to the button
+      const viewBtn = tr.querySelector('.view-btn');
+      viewBtn.addEventListener('click', function() {
+        const dataIndex = this.getAttribute('data-index');
+        showModal(responseData.get(parseInt(dataIndex)) || "No response data available");
+      });
 
       // Add to top of table (newest first)
       if (tbody.firstChild) {
@@ -928,16 +953,28 @@
       else avgTimeEl.classList.add('error');
     }
 
-    function showModal(text) {
+    function showModal(responseText) {
       const modal = document.getElementById('modal');
       const modalBody = document.getElementById('modal-body');
 
-      try {
-        const decodedText = decodeURIComponent(text);
-        const parsed = JSON.parse(decodedText);
-        modalBody.textContent = JSON.stringify(parsed, null, 2);
-      } catch {
-        modalBody.textContent = decodeURIComponent(text);
+      // Try to format if it's JSON
+      if (responseText) {
+        try {
+          // Remove any extra quotes or backslashes
+          let cleanText = responseText;
+          if (typeof cleanText === 'string') {
+            // Try to parse as JSON
+            const parsed = JSON.parse(cleanText);
+            modalBody.textContent = JSON.stringify(parsed, null, 2);
+          } else {
+            modalBody.textContent = cleanText;
+          }
+        } catch {
+          // If not JSON, display as is
+          modalBody.textContent = responseText;
+        }
+      } else {
+        modalBody.textContent = "No response data available";
       }
 
       modal.style.display = 'block';
@@ -952,18 +989,18 @@
       const toast = document.createElement('div');
       toast.textContent = message;
       toast.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--primary);
-    color: white;
-    padding: 12px 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    z-index: 1001;
-    font-size: 0.875rem;
-    animation: slideInUp 0.3s;
-  `;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 12px 20px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        z-index: 1001;
+        font-size: 0.875rem;
+        animation: slideInUp 0.3s;
+      `;
 
       document.body.appendChild(toast);
 
@@ -985,18 +1022,23 @@
     // Add CSS for toast animations
     const style = document.createElement('style');
     style.textContent = `
-  @keyframes slideInUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-  .warning {
-    color: var(--warning);
-  }
-`;
+      @keyframes slideInUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
     document.head.appendChild(style);
   </script>
 </body>
