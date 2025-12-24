@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Zip Uploader</title>
+    <script src="https://unpkg.com/@zip.js/zip.js/dist/zip.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+        }
+
+        .container {
+            width: 440px;
+            margin: 70px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 40px;
+        }
+
+        .toggle-eye {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            user-select: none;
+        }
+
+        input, button {
+            width: 100%;
+            margin-top: 5px;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Secure Zip Uploader</h2>
+
+    <label>Upload URL</label>
+    <input type="text" id="uploadUrl" placeholder="http://localhost:8080/api/v1/upload">
+
+    <label>Bearer Token (optional)</label>
+    <div class="password-wrapper">
+        <input type="password" id="bearerToken" placeholder="eyJhbGciOi...">
+        <span class="toggle-eye" onclick="togglePassword('bearerToken', this)">👁️</span>
+    </div>
+    <div class="hint">Authorization: Bearer &lt;token&gt;</div>
+
+    <label>Chọn file</label>
+    <input type="file" id="fileInput">
+
+    <label>Password cho file zip</label>
+    <div class="password-wrapper">
+        <input type="password" id="zipPassword" placeholder="Nhập password">
+        <span class="toggle-eye" onclick="togglePassword('zipPassword', this)">👁️</span>
+    </div>
+
+    <button onclick="zipAndUpload()">Zip & Upload</button>
+
+    <p id="result"></p>
+</div>
+
+<script>
+    function togglePassword(inputId, eye) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            eye.textContent = "🙈";
+        } else {
+            input.type = "password";
+            eye.textContent = "👁️";
+        }
+    }
+
+    async function zipAndUpload() {
+        const url = document.getElementById("uploadUrl").value.trim();
+        const token = document.getElementById("bearerToken").value.trim();
+        const fileInput = document.getElementById("fileInput");
+        const password = document.getElementById("zipPassword").value;
+        const result = document.getElementById("result");
+
+        if (!url || fileInput.files.length === 0 || !password) {
+            result.textContent = "Vui lòng nhập URL, chọn file và nhập password!";
+            return;
+        }
+
+        const file = fileInput.files[0];
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}`;
+        const uuid = crypto.randomUUID();
+        const zipFileName = `${dateStr}_${uuid}.zip`;
+
+        result.textContent = "Đang zip file...";
+
+        try {
+            const zipWriter = new zip.ZipWriter(
+                new zip.BlobWriter("application/zip"),
+                {
+                    password: password,
+                    encryptionStrength: 3
+                }
+            );
+
+            await zipWriter.add(file.name, new zip.BlobReader(file));
+            const zipBlob = await zipWriter.close();
+
+            const formData = new FormData();
+            formData.append("file", zipBlob, zipFileName);
+
+            result.textContent = "Đang upload...";
+
+            const headers = {};
+            if (token) {
+                headers["Authorization"] = "Bearer " + token;
+            }
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers,
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error("Upload thất bại (" + response.status + ")");
+            }
+
+            result.textContent = `Upload thành công: ${zipFileName}`;
+        } catch (err) {
+            result.textContent = "Lỗi: " + err.message;
+        }
+    }
+</script>
+
+</body>
+</html>
