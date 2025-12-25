@@ -1,0 +1,334 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a56d4;
+    --success: #06d6a0;
+    --error: #ef476f;
+    --warning: #ffd166;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animation for progress bars */
+@keyframes growWidth {
+    from { width: 0; }
+    to { width: var(--target-width); }
+}
+
+.progress-bar {
+    animation: growWidth 0.8s ease-out;
+}
+
+/* Tab styles */
+.tab-active {
+    border-bottom: 2px solid #4361ee;
+    color: #4361ee;
+    font-weight: 500;
+}
+
+/* Heat map colors */
+.heat-excellent { background-color: #06d6a0; color: white; }
+.heat-good { background-color: #ffd166; color: #333; }
+.heat-poor { background-color: #ef476f; color: white; }
+
+/* ===== MODERN ANIMATED DROPDOWN ===== */
+.tool-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.dropdown-toggle:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.dropdown-toggle:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 260px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 
+                0 0 0 1px rgba(0, 0, 0, 0.05),
+                0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* Arrow pointing up */
+.dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-left: 1px solid #e5e7eb;
+    border-top: 1px solid #e5e7eb;
+    transform: rotate(45deg);
+    z-index: 1;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    border-bottom: 1px solid #f8fafc;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+/* Item được chọn (active) - MÀU XANH */
+.dropdown-item.active {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1d4ed8;
+    border-left: 3px solid #3b82f6;
+}
+
+.dropdown-item.active .dropdown-item-desc {
+    color: #4b5563;
+}
+
+/* Item không được chọn - MÀU TRẮNG */
+.dropdown-item:not(.active) {
+    background: white;
+    color: #334155;
+    border-left: 3px solid transparent;
+}
+
+.dropdown-item:not(.active) .dropdown-item-desc {
+    color: #64748b;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dropdown-item-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.dropdown-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.dropdown-item-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin-bottom: 2px;
+}
+
+.dropdown-item-desc {
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+/* Hover effect cho tất cả items */
+.dropdown-item:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #2563eb;
+    transform: translateX(4px);
+}
+
+/* Active item khi hover - màu xanh đậm hơn */
+.dropdown-item.active:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Comparison table styles */
+.comparison-table tr:hover {
+    background-color: #f9fafb;
+}
+
+.comparison-table .winner {
+    font-weight: 600;
+}
+
+/* Modal styles */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Server indicators */
+.server-indicator-a {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.server-indicator-b {
+    background-color: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dropdown-menu {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        width: auto;
+        border-radius: 16px 16px 0 0;
+        max-height: 60vh;
+        overflow-y: auto;
+        transform: translateY(100%);
+    }
+    
+    .dropdown-menu.show {
+        transform: translateY(0);
+    }
+    
+    .dropdown-menu::before {
+        display: none;
+    }
+    
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stats cards */
+.stats-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* View toggle buttons */
+.view-toggle {
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+}
+
+.view-toggle.active {
+    background-color: #4361ee;
+    color: white;
+    border-color: #4361ee;
+}
+
+/* Comparison tabs */
+.compare-tab {
+    display: block;
+}
+
+.compare-tab.hidden {
+    display: none;
+}
+
+/* Heat map legend */
+.heat-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

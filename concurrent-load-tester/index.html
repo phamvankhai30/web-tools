@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concurrent Load Tester</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS library -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        'primary-dark': '#3a56d4',
+                        success: '#06d6a0',
+                        error: '#ef476f',
+                        warning: '#ffd166',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
+                        'mono': ['SF Mono', 'Consolas', 'monospace'],
+                    },
+                    fontSize: {
+                        '2xs': '0.625rem', // 10px
+                        'xs': '0.75rem',   // 12px
+                        'sm': '0.875rem',  // 14px
+                        'base': '0.9375rem', // 15px
+                        'lg': '1.125rem',  // 18px
+                        'xl': '1.25rem',   // 20px
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 min-h-screen text-gray-800 text-sm">
+    <div class="container mx-auto px-3 py-2 max-w-7xl">
+        <!-- Header with Tool Selector -->
+        <header class="mb-3 pb-2 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <!-- My Tools dropdown moved to leftmost position -->
+                    <div class="tool-dropdown">
+                        <button class="dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                            My Tools
+                        </button>
+                        <div class="dropdown-menu" role="menu" aria-label="Tools menu">
+                            <a href="#" class="dropdown-item active" role="menuitem">
+                                <div class="dropdown-item-icon">
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <div class="dropdown-item-title">Concurrent Load Tester</div>
+                                    <div class="dropdown-item-desc">Send multiple requests simultaneously</div>
+                                </div>
+                            </a>
+                            <a href="../performance-diff-analyzer/index.html" class="dropdown-item" role="menuitem">
+                                <div class="dropdown-item-icon">
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M9 17l-5-5 1.41-1.41L9 14.17l7.59-7.59L18 8l-9 9z" />
+                                    </svg>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <div class="dropdown-item-title">Performance Diff Analyzer</div>
+                                    <div class="dropdown-item-desc">Compare API performance between servers</div>
+                                </div>
+                            </a>
+                            <a href="../index.html" class="dropdown-item" role="menuitem">
+                                <div class="dropdown-item-icon">
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                                    </svg>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <div class="dropdown-item-title">Home</div>
+                                    <div class="dropdown-item-desc">Back to tools collection</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <h1 class="text-lg font-semibold text-gray-800">Concurrent Load Tester</h1>
+                </div>
+                <p class="text-gray-600 text-xs">Send multiple requests to your API endpoint simultaneously</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 h-[calc(100vh-100px)]">
+            <!-- Left Column: Controls -->
+            <div class="bg-white rounded shadow p-3 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-base font-semibold text-gray-800">Request Configuration</h2>
+                    <button
+                        class="px-2 py-1 bg-primary text-white text-xs rounded border border-primary hover:bg-primary-dark transition-colors"
+                        onclick="openUploadModal()">
+                        Upload Input
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
+                    <!-- HTTP Method - 1/4 -->
+                    <div class="flex flex-col">
+                        <label for="method" class="text-xs font-medium text-gray-800 mb-1">HTTP Method</label>
+                        <select id="method"
+                            class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            <option>GET</option>
+                            <option>POST</option>
+                            <option>PUT</option>
+                            <option>DELETE</option>
+                            <option>PATCH</option>
+                        </select>
+                    </div>
+
+                    <!-- Concurrent Requests - 1/4 -->
+                    <div class="flex flex-col">
+                        <label for="count" class="text-xs font-medium text-gray-800 mb-1">Concurrent Requests</label>
+                        <input type="number" id="count" value="5" min="1" max="100"
+                            class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <!-- Timeout - 1/4 -->
+                    <div class="flex flex-col">
+                        <label for="timeout" class="text-xs font-medium text-gray-800 mb-1">Timeout (seconds)</label>
+                        <div class="relative">
+                            <input type="number" id="timeout" value="30" min="1" max="300"
+                                class="w-full px-2 py-1.5 pr-6 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            <button
+                                class="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center opacity-70 hover:bg-error hover:text-white transition-colors"
+                                onclick="clearInput('timeout')" title="Clear">
+                                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Empty column to maintain 4-column layout -->
+                    <div class="hidden md:block"></div>
+
+                    <!-- API Endpoint URL - full width -->
+                    <div class="flex flex-col md:col-span-4">
+                        <label for="url" class="text-xs font-medium text-gray-800 mb-1">API Endpoint URL</label>
+                        <div class="relative">
+                            <input type="text" id="url" placeholder="https://jsonplaceholder.typicode.com/posts"
+                                class="w-full px-2 py-1.5 pr-6 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            <button
+                                class="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center opacity-70 hover:bg-error hover:text-white transition-colors"
+                                onclick="clearInput('url')" title="Clear">
+                                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Authorization Token - full width -->
+                    <div class="flex flex-col md:col-span-4">
+                        <label for="token" class="text-xs font-medium text-gray-800 mb-1">Authorization Token
+                            (optional)</label>
+                        <div class="relative">
+                            <input type="text" id="token" placeholder="Bearer token or API key"
+                                class="w-full px-2 py-1.5 pr-6 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            <button
+                                class="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center opacity-70 hover:bg-error hover:text-white transition-colors"
+                                onclick="clearInput('token')" title="Clear">
+                                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Request Body - full width -->
+                    <div class="flex flex-col md:col-span-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="body" class="text-xs font-medium text-gray-800">Request Body (JSON, optional for
+                                POST/PUT/PATCH)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="useArrayInputs" class="w-3 h-3">
+                                <label for="useArrayInputs" class="text-2xs text-gray-600">Use array inputs</label>
+                            </div>
+                        </div>
+                        <textarea id="body" placeholder='{"key": "value"} or [{"key": "value1"}, {"key": "value2"}]'
+                            class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent font-mono text-xs min-h-[120px] resize-y"></textarea>
+                        <p class="text-2xs text-gray-600 mt-1" id="array-info">When "Use array inputs" is checked, each
+                            array element will be used as input for separate requests</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-1">
+                    <button
+                        class="flex-1 px-3 py-1.5 bg-gray-200 text-gray-800 font-medium rounded text-xs hover:bg-gray-300 transition-colors"
+                        onclick="formatJsonBody()">
+                        Format JSON
+                    </button>
+                    <button
+                        class="flex-1 px-3 py-1.5 bg-primary text-white font-medium rounded text-xs hover:bg-primary-dark transition-colors"
+                        onclick="runRequests()">
+                        Run Concurrent Tests
+                    </button>
+                </div>
+
+                <div class="hidden text-center p-3 bg-white/90 rounded mt-3" id="loading">
+                    <div class="loading-spinner mx-auto mb-2"></div>
+                    <p class="text-gray-600 text-xs">Sending concurrent requests...</p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-gray-100 rounded mt-2 hidden"
+                    id="stats-container">
+                    <div class="bg-white p-2 rounded shadow text-center">
+                        <div class="text-base font-semibold text-success" id="stat-success">0</div>
+                        <div class="text-2xs text-gray-600 uppercase tracking-wider">Successful</div>
+                    </div>
+                    <div class="bg-white p-2 rounded shadow text-center">
+                        <div class="text-base font-semibold text-error" id="stat-error">0</div>
+                        <div class="text-2xs text-gray-600 uppercase tracking-wider">Failed</div>
+                    </div>
+                    <div class="bg-white p-2 rounded shadow text-center">
+                        <div class="text-base font-semibold" id="stat-avg-time">0</div>
+                        <div class="text-2xs text-gray-600 uppercase tracking-wider">Avg Time (ms)</div>
+                    </div>
+                    <div class="bg-white p-2 rounded shadow text-center">
+                        <div class="text-base font-semibold" id="stat-total">0</div>
+                        <div class="text-2xs text-gray-600 uppercase tracking-wider">Total</div>
+                    </div>
+                    <div class="bg-white p-2 rounded shadow text-center">
+                        <div class="text-base font-semibold" id="stat-min-time">0</div>
+                        <div class="text-2xs text-gray-600 uppercase tracking-wider">Min (ms)</div>
+                    </div>
+                    <div class="bg-white p-2 rounded shadow text-center">
+                        <div class="text-base font-semibold" id="stat-max-time">0</div>
+                        <div class="text-2xs text-gray-600 uppercase tracking-wider">Max (ms)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="bg-white rounded shadow overflow-hidden flex flex-col h-full">
+                <div class="px-3 py-2 border-b border-gray-200">
+                    <h2 class="text-base font-semibold text-gray-800">Test Results</h2>
+                </div>
+
+                <div class="flex-1 overflow-auto">
+                    <table class="w-full text-xs">
+                        <thead class="sticky top-0 bg-white z-10 border-b border-gray-200">
+                            <tr>
+                                <th
+                                    class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">
+                                    #</th>
+                                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs cursor-pointer hover:bg-gray-100 sort-header"
+                                    data-sort="status">
+                                    Status
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs cursor-pointer hover:bg-gray-100 sort-header"
+                                    data-sort="code">
+                                    Code
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs cursor-pointer hover:bg-gray-100 sort-header"
+                                    data-sort="startTime">
+                                    Start Time
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs cursor-pointer hover:bg-gray-100 sort-header"
+                                    data-sort="endTime">
+                                    End Time
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs cursor-pointer hover:bg-gray-100 sort-header"
+                                    data-sort="duration">
+                                    Duration
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th
+                                    class="px-2 py-1.5 text-left font-medium text-gray-600 uppercase tracking-wider text-2xs">
+                                    Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-gray-100">
+                            <!-- Results will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for response details -->
+    <div id="modal" class="fixed inset-0 z-50 hidden bg-black/50">
+        <div class="flex items-center justify-center min-h-screen p-3">
+            <div class="bg-white rounded shadow w-full max-w-2xl max-h-[90vh] flex flex-col modal-enter">
+                <div class="flex justify-between items-center px-3 py-2 border-b border-gray-200 bg-gray-100">
+                    <h3 class="text-sm font-semibold text-gray-800">Response Details</h3>
+                    <button class="text-gray-600 hover:text-gray-800" onclick="closeModal()">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-3 overflow-auto flex-1">
+                    <pre id="modal-body"
+                        class="bg-gray-50 p-2 rounded font-mono text-xs whitespace-pre-wrap break-words max-h-[60vh]"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for cURL command -->
+    <div id="curl-modal" class="fixed inset-0 z-50 hidden bg-black/50">
+        <div class="flex items-center justify-center min-h-screen p-3">
+            <div class="bg-white rounded shadow w-full max-w-3xl max-h-[90vh] flex flex-col modal-enter">
+                <div class="flex justify-between items-center px-3 py-2 border-b border-gray-200 bg-gray-100">
+                    <h3 class="text-sm font-semibold text-gray-800">cURL Command</h3>
+                    <div class="flex items-center gap-1">
+                        <button
+                            class="px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary-dark transition-colors"
+                            onclick="copyCurlToClipboard()">
+                            Copy
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-800 ml-1" onclick="closeCurlModal()">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-3 overflow-auto flex-1">
+                    <pre id="curl-body"
+                        class="bg-gray-900 text-gray-100 p-2 rounded font-mono text-2xs overflow-auto"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for upload XLSX and mapping -->
+    <div id="upload-modal" class="fixed inset-0 z-50 hidden bg-black/50">
+        <div class="flex items-center justify-center min-h-screen p-3">
+            <div class="bg-white rounded shadow w-full max-w-2xl max-h-[90vh] flex flex-col modal-enter">
+                <div class="flex justify-between items-center px-3 py-2 border-b border-gray-200 bg-gray-100">
+                    <h3 class="text-sm font-semibold text-gray-800">Upload Excel Data and Map to JSON</h3>
+                    <button class="text-gray-600 hover:text-gray-800" onclick="closeUploadModal()">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-3 overflow-auto flex-1">
+                    <div class="mb-3">
+                        <label for="jsonMapping" class="block text-xs font-medium text-gray-800 mb-1">JSON Mapping
+                            Template</label>
+                        <textarea id="jsonMapping"
+                            class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent font-mono text-xs min-h-[100px]">{
+  "title": "static text",
+  "memberCode": "from_upload",
+  "email": "from_upload"
+}</textarea>
+                        <p class="text-2xs text-gray-600 mt-1">Use "from_upload" to map values from Excel columns. Use
+                            static values for fixed data.</p>
+                        <div class="bg-gray-100 px-2 py-1 rounded mt-1 font-mono text-2xs">
+                            Example: {"field1": "static value", "field2": "from_upload"}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="xlsxFile" class="block text-xs font-medium text-gray-800 mb-1">Upload XLSX
+                            File</label>
+                        <input type="file" id="xlsxFile" accept=".xlsx"
+                            class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <div class="border border-gray-200 rounded overflow-hidden hidden" id="upload-preview">
+                        <div class="bg-gray-100 px-2 py-1.5 border-b border-gray-200 font-medium text-xs">Preview Output
+                        </div>
+                        <div class="p-2 bg-gray-50 max-h-[200px] overflow-auto">
+                            <pre id="upload-output" class="bg-white p-2 rounded font-mono text-xs"></pre>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-3">
+                        <button
+                            class="flex-1 px-3 py-1.5 bg-gray-200 text-gray-800 font-medium rounded text-xs hover:bg-gray-300 transition-colors"
+                            onclick="closeUploadModal()">
+                            Cancel
+                        </button>
+                        <button
+                            class="flex-1 px-3 py-1.5 bg-primary text-white font-medium rounded text-xs hover:bg-primary-dark transition-colors"
+                            onclick="processUpload()">
+                            Process and Apply
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/app.js"></script>
+</body>
+</html>
