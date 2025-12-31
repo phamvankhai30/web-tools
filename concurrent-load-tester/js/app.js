@@ -180,12 +180,6 @@ async function runRequests() {
         }
     }
 
-    if (actualCount < 1 || actualCount > 100) {
-        alert("Please enter a number between 1 and 100 for concurrent requests");
-        document.getElementById('loading').classList.add('hidden');
-        return;
-    }
-
     // Clear previous results
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
@@ -195,28 +189,11 @@ async function runRequests() {
     tableData = []; // Clear sort data
     resetSort(); // Reset sort state
 
-    const requests = [];
-
-    // Initialize stats
-    let successCount = 0;
-    let errorCount = 0;
-    let totalDuration = 0;
-    let minDuration = Infinity;
-    let maxDuration = 0;
-
-    // Create headers
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) {
-        headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    }
-
-    // Create AbortController for timeout
-    const abortControllers = [];
-
-    // Execute all requests simultaneously
+    // ===== CHUẨN BỊ TẤT CẢ REQUEST CONFIGS TRƯỚC =====
+    const requestConfigs = [];
+    
     for (let i = 0; i < actualCount; i++) {
         const requestIndex = i + 1;
-        const startTime = Date.now();
 
         // Determine body for this specific request
         let requestBody = null;
@@ -258,6 +235,13 @@ async function runRequests() {
             requestUrl = `${requestUrl}?${combinedParams}`;
         }
 
+        // Create headers
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) {
+            headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        }
+
+        // Create fetch options
         const fetchOptions = {
             method,
             headers,
@@ -270,29 +254,40 @@ async function runRequests() {
             fetchOptions.body = requestBody;
         }
 
-        // Create cURL command
-        const curlCommand = generateCurlCommand(requestUrl, method, headers, requestBody, timeoutSeconds);
-        curlCommands.set(requestIndex, curlCommand);
+        // Store config
+        requestConfigs.push({
+            index: requestIndex,
+            url: requestUrl,
+            options: fetchOptions,
+            requestBody: requestBody,
+            timeoutMs: timeoutSeconds * 1000
+        });
+    }
 
+    // ===== GỬI TẤT CẢ REQUEST CÙNG LÚC =====
+    const globalStartTime = Date.now(); // Thời gian chung cho tất cả
+    
+    // Tạo tất cả fetch promises CÙNG LÚC
+    const fetchPromises = requestConfigs.map(config => {
         // Create AbortController for timeout
         const abortController = new AbortController();
-        abortControllers.push(abortController);
-        fetchOptions.signal = abortController.signal;
-
+        config.options.signal = abortController.signal;
+        
         // Set timeout
-        const timeoutId = setTimeout(() => {
+        setTimeout(() => {
             abortController.abort();
-        }, timeoutSeconds * 1000);
-
-        const requestPromise = fetch(requestUrl, fetchOptions)
+        }, config.timeoutMs);
+        
+        // Generate cURL command
+        const curlCommand = generateCurlCommand(config.url, method, config.options.headers, config.requestBody, timeoutSeconds);
+        curlCommands.set(config.index, curlCommand);
+        
+        // GỬI REQUEST - tất cả được gọi cùng lúc qua Promise.all
+        return fetch(config.url, config.options)
             .then(async response => {
-                clearTimeout(timeoutId);
                 const endTime = Date.now();
-                const duration = endTime - startTime;
-                totalDuration += duration;
-                minDuration = Math.min(minDuration, duration);
-                maxDuration = Math.max(maxDuration, duration);
-
+                const duration = endTime - globalStartTime;
+                
                 let responseText;
                 try {
                     responseText = await response.text();
@@ -306,61 +301,86 @@ async function runRequests() {
                 } catch {
                     responseText = "No response body or unable to read";
                 }
-
-                const success = response.ok;
-                if (success) {
-                    successCount++;
-                } else {
-                    errorCount++;
-                }
-
-                // Store response data with index as key
-                responseData.set(requestIndex, responseText);
-
-                // Update UI immediately
-                addTableRow(requestIndex, success, response.status, new Date(startTime), new Date(endTime), duration);
-
-                // Update stats as they come in
-                updateStats(successCount, errorCount, totalDuration, requestIndex, minDuration, maxDuration);
-
-                return { success, status: response.status };
+                
+                return {
+                    index: config.index,
+                    success: response.ok,
+                    status: response.status,
+                    responseText,
+                    duration,
+                    startTime: globalStartTime,
+                    endTime
+                };
             })
             .catch(error => {
-                clearTimeout(timeoutId);
                 const endTime = Date.now();
-                const duration = endTime - startTime;
-                totalDuration += duration;
-                minDuration = Math.min(minDuration, duration);
-                maxDuration = Math.max(maxDuration, duration);
-                errorCount++;
-
-                // Determine if it's a timeout error
+                const duration = endTime - globalStartTime;
+                
                 let errorMessage = error.toString();
                 let statusCode = "Error";
                 if (error.name === 'AbortError') {
                     errorMessage = `Request timed out after ${timeoutSeconds} seconds`;
                     statusCode = "Timeout";
                 }
-
-                // Store error response
-                responseData.set(requestIndex, errorMessage);
-
-                addTableRow(requestIndex, false, statusCode, new Date(startTime), new Date(endTime), duration);
-
-                updateStats(successCount, errorCount, totalDuration, requestIndex, minDuration, maxDuration);
-
-                return { success: false, status: statusCode };
+                
+                return {
+                    index: config.index,
+                    success: false,
+                    status: statusCode,
+                    responseText: errorMessage,
+                    duration,
+                    startTime: globalStartTime,
+                    endTime
+                };
             });
+    });
 
-        requests.push(requestPromise);
-    }
+    // ===== CHỜ TẤT CẢ HOÀN THÀNH VÀ XỬ LÝ KẾT QUẢ =====
+    const results = await Promise.allSettled(fetchPromises);
+    
+    // Initialize stats
+    let successCount = 0;
+    let errorCount = 0;
+    let totalDuration = 0;
+    let minDuration = Infinity;
+    let maxDuration = 0;
 
-    // Wait for all requests to complete
-    await Promise.allSettled(requests);
-
-    // Clear all timeout timers
-    abortControllers.forEach(controller => {
-        controller.abort(); // Just in case
+    // Process all results
+    results.forEach((result, i) => {
+        if (result.status === 'fulfilled') {
+            const data = result.value;
+            
+            // Update stats
+            totalDuration += data.duration;
+            minDuration = Math.min(minDuration, data.duration);
+            maxDuration = Math.max(maxDuration, data.duration);
+            
+            if (data.success) {
+                successCount++;
+            } else {
+                errorCount++;
+            }
+            
+            // Store response data
+            responseData.set(data.index, data.responseText);
+            
+            // Add to table
+            addTableRow(data.index, data.success, data.status, 
+                       new Date(data.startTime), new Date(data.endTime), data.duration);
+        } else {
+            // Handle promise rejection
+            errorCount++;
+            const requestIndex = requestConfigs[i]?.index || i + 1;
+            const duration = Date.now() - globalStartTime;
+            
+            responseData.set(requestIndex, "Promise rejected: " + result.reason);
+            addTableRow(requestIndex, false, "Error", 
+                       new Date(globalStartTime), new Date(), duration);
+            
+            totalDuration += duration;
+            minDuration = Math.min(minDuration, duration);
+            maxDuration = Math.max(maxDuration, duration);
+        }
     });
 
     // Hide loading indicator
@@ -784,11 +804,10 @@ function processUpload() {
                     bodyTextarea.value = JSON.stringify(result[0], null, 2);
                 }
 
-                // Also update concurrent requests count to match data rows
+                // ===== XÓA GIỚI HẠN 100, ĐỂ NGUYÊN =====
                 const countInput = document.getElementById('count');
-                if (confirm(`Update concurrent requests count to ${result.length}?`)) {
-                    countInput.value = Math.min(result.length, 100); // Max 100
-                }
+                // Luôn đề xuất đúng số lượng rows từ Excel
+                countInput.value = result.length;
 
                 closeUploadModal();
                 showToast("Request body updated with uploaded data");
