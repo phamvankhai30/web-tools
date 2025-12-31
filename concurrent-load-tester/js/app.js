@@ -37,8 +37,8 @@ function initApp() {
 
     // Initialize clear buttons visibility
     toggleClearButton('url');
-    toggleClearButton('token');
     toggleClearButton('timeout');
+    toggleClearButton('delay');
 
     // Initialize sorting
     initSorting();
@@ -51,12 +51,12 @@ function initApp() {
 
 function setupEventListeners() {
     const urlInput = document.getElementById('url');
-    const tokenInput = document.getElementById('token');
     const timeoutInput = document.getElementById('timeout');
+    const delayInput = document.getElementById('delay');
 
     urlInput.addEventListener('input', () => toggleClearButton('url'));
-    tokenInput.addEventListener('input', () => toggleClearButton('token'));
     timeoutInput.addEventListener('input', () => toggleClearButton('timeout'));
+    delayInput.addEventListener('input', () => toggleClearButton('delay'));
 }
 
 function updateBodyPlaceholder() {
@@ -74,14 +74,13 @@ function updateBodyPlaceholder() {
 }
 
 function clearInput(inputId) {
-    if (inputId === 'timeout') {
-        // Reset to default value 30s instead of empty
-        document.getElementById(inputId).value = '30';
-    } else {
-        document.getElementById(inputId).value = '';
-    }
+    const input = document.getElementById(inputId);
+    const defaultValue = inputId === 'timeout' ? '30' : 
+                        inputId === 'delay' ? '0' : '';
+    
+    input.value = defaultValue;
     // Focus back on input after clearing
-    document.getElementById(inputId).focus();
+    input.focus();
     // Hide clear button
     toggleClearButton(inputId);
 }
@@ -89,29 +88,51 @@ function clearInput(inputId) {
 function toggleClearButton(inputId) {
     const input = document.getElementById(inputId);
     const clearBtn = input.parentNode.querySelector('button');
-    if (inputId === 'timeout') {
-        // Show clear button only if value is not default (30)
-        if (input.value !== '30') {
-            clearBtn.classList.remove('hidden');
-        } else {
-            clearBtn.classList.add('hidden');
-        }
-    } else if (input.value.trim() !== '') {
+    
+    const defaultValue = inputId === 'timeout' ? '30' : 
+                        inputId === 'delay' ? '0' : '';
+    
+    if (input.value !== defaultValue && input.value.trim() !== '') {
         clearBtn.classList.remove('hidden');
     } else {
         clearBtn.classList.add('hidden');
     }
 }
 
-function formatJsonBody() {
-    const bodyTextarea = document.getElementById('body');
-    const text = bodyTextarea.value.trim();
+function addDefaultHeaders() {
+    const headersTextarea = document.getElementById('headers');
+    const defaultHeaders = {
+        "Authorization": "Bearer your_token_here",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    };
+    
+    try {
+        const currentHeaders = headersTextarea.value.trim();
+        let mergedHeaders = defaultHeaders;
+        
+        if (currentHeaders) {
+            const parsed = JSON.parse(currentHeaders);
+            mergedHeaders = { ...defaultHeaders, ...parsed };
+        }
+        
+        headersTextarea.value = JSON.stringify(mergedHeaders, null, 2);
+        showToast("Default headers added!");
+    } catch (e) {
+        headersTextarea.value = JSON.stringify(defaultHeaders, null, 2);
+        showToast("Default headers added!");
+    }
+}
+
+function formatJson(textareaId) {
+    const textarea = document.getElementById(textareaId);
+    const text = textarea.value.trim();
 
     if (!text) return;
 
     try {
         const parsed = JSON.parse(text);
-        bodyTextarea.value = JSON.stringify(parsed, null, 2);
+        textarea.value = JSON.stringify(parsed, null, 2);
         showToast("JSON formatted successfully!");
     } catch (e) {
         alert("Invalid JSON format. Cannot format.");
@@ -121,10 +142,11 @@ function formatJsonBody() {
 async function runRequests() {
     let url = document.getElementById('url').value.trim();
     const method = document.getElementById('method').value;
-    const token = document.getElementById('token').value.trim();
+    const headersText = document.getElementById('headers').value.trim();
     const bodyText = document.getElementById('body').value.trim();
     const count = parseInt(document.getElementById('count').value);
     const timeoutSeconds = parseInt(document.getElementById('timeout').value);
+    const delayMs = parseInt(document.getElementById('delay').value);
     const useArrayInputs = document.getElementById('useArrayInputs').checked;
 
     if (!url) {
@@ -137,9 +159,28 @@ async function runRequests() {
         return;
     }
 
+    if (isNaN(delayMs) || delayMs < 0 || delayMs > 10000) {
+        alert("Delay must be between 0 and 10000 ms");
+        return;
+    }
+
     // Show loading indicator
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('stats-container').classList.add('hidden');
+
+    // Parse headers
+    let headers = { 'Content-Type': 'application/json' };
+    if (headersText) {
+        try {
+            const parsedHeaders = JSON.parse(headersText);
+            // Merge parsed headers with defaults
+            headers = { ...headers, ...parsedHeaders };
+        } catch (e) {
+            alert("Invalid JSON in headers field");
+            document.getElementById('loading').classList.add('hidden');
+            return;
+        }
+    }
 
     // Parse request body
     let bodyArray = null;
@@ -235,16 +276,10 @@ async function runRequests() {
             requestUrl = `${requestUrl}?${combinedParams}`;
         }
 
-        // Create headers
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) {
-            headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-        }
-
         // Create fetch options
         const fetchOptions = {
             method,
-            headers,
+            headers: { ...headers },
             mode: 'cors',
             cache: 'no-cache'
         };
@@ -264,134 +299,258 @@ async function runRequests() {
         });
     }
 
-    // ===== GỬI TẤT CẢ REQUEST CÙNG LÚC =====
+    // ===== GỬI REQUEST VỚI DELAY NẾU CẦN =====
     const globalStartTime = Date.now(); // Thời gian chung cho tất cả
     
-    // Tạo tất cả fetch promises CÙNG LÚC
-    const fetchPromises = requestConfigs.map(config => {
-        // Create AbortController for timeout
-        const abortController = new AbortController();
-        config.options.signal = abortController.signal;
-        
-        // Set timeout
-        setTimeout(() => {
-            abortController.abort();
-        }, config.timeoutMs);
-        
-        // Generate cURL command
-        const curlCommand = generateCurlCommand(config.url, method, config.options.headers, config.requestBody, timeoutSeconds);
-        curlCommands.set(config.index, curlCommand);
-        
-        // GỬI REQUEST - tất cả được gọi cùng lúc qua Promise.all
-        return fetch(config.url, config.options)
-            .then(async response => {
-                const endTime = Date.now();
-                const duration = endTime - globalStartTime;
-                
-                let responseText;
-                try {
-                    responseText = await response.text();
-                    // Try to parse as JSON for formatting
-                    try {
-                        const parsed = JSON.parse(responseText);
-                        responseText = JSON.stringify(parsed, null, 2);
-                    } catch {
-                        // Keep as is if not JSON
-                    }
-                } catch {
-                    responseText = "No response body or unable to read";
-                }
-                
-                return {
-                    index: config.index,
-                    success: response.ok,
-                    status: response.status,
-                    responseText,
-                    duration,
-                    startTime: globalStartTime,
-                    endTime
-                };
-            })
-            .catch(error => {
-                const endTime = Date.now();
-                const duration = endTime - globalStartTime;
-                
-                let errorMessage = error.toString();
-                let statusCode = "Error";
-                if (error.name === 'AbortError') {
-                    errorMessage = `Request timed out after ${timeoutSeconds} seconds`;
-                    statusCode = "Timeout";
-                }
-                
-                return {
-                    index: config.index,
-                    success: false,
-                    status: statusCode,
-                    responseText: errorMessage,
-                    duration,
-                    startTime: globalStartTime,
-                    endTime
-                };
-            });
-    });
+    // Initialize stats với var thay vì let để đảm bảo scope
+    var successCount = 0;
+    var errorCount = 0;
+    var totalDuration = 0;
+    var minDuration = Infinity;
+    var maxDuration = 0;
 
-    // ===== CHỜ TẤT CẢ HOÀN THÀNH VÀ XỬ LÝ KẾT QUẢ =====
-    const results = await Promise.allSettled(fetchPromises);
-    
-    // Initialize stats
-    let successCount = 0;
-    let errorCount = 0;
-    let totalDuration = 0;
-    let minDuration = Infinity;
-    let maxDuration = 0;
-
-    // Process all results
-    results.forEach((result, i) => {
-        if (result.status === 'fulfilled') {
-            const data = result.value;
-            
-            // Update stats
-            totalDuration += data.duration;
-            minDuration = Math.min(minDuration, data.duration);
-            maxDuration = Math.max(maxDuration, data.duration);
-            
-            if (data.success) {
-                successCount++;
-            } else {
-                errorCount++;
-            }
-            
-            // Store response data
-            responseData.set(data.index, data.responseText);
-            
-            // Add to table
-            addTableRow(data.index, data.success, data.status, 
-                       new Date(data.startTime), new Date(data.endTime), data.duration);
+    // Function để cập nhật stats
+    const updateStatsFromResult = (data, requestIndex) => {
+        totalDuration += data.duration;
+        minDuration = Math.min(minDuration, data.duration);
+        maxDuration = Math.max(maxDuration, data.duration);
+        
+        if (data.success) {
+            successCount++;
         } else {
-            // Handle promise rejection
             errorCount++;
-            const requestIndex = requestConfigs[i]?.index || i + 1;
-            const duration = Date.now() - globalStartTime;
-            
-            responseData.set(requestIndex, "Promise rejected: " + result.reason);
-            addTableRow(requestIndex, false, "Error", 
-                       new Date(globalStartTime), new Date(), duration);
-            
-            totalDuration += duration;
-            minDuration = Math.min(minDuration, duration);
-            maxDuration = Math.max(maxDuration, duration);
         }
-    });
+        
+        // Store response data
+        responseData.set(data.index, data.responseText);
+        
+        // Add to table
+        addTableRow(data.index, data.success, data.status, 
+                   new Date(data.startTime), new Date(data.endTime), data.duration);
+    };
+
+    // Nếu có delay, gửi tuần tự với delay
+    if (delayMs > 0) {
+        showToast(`Sending requests sequentially with ${delayMs}ms delay between requests`);
+        
+        for (let i = 0; i < requestConfigs.length; i++) {
+            const config = requestConfigs[i];
+            const result = await sendRequestWithDelay(config, i, delayMs, globalStartTime);
+            
+            // Process result
+            updateStatsFromResult(result, config.index);
+        }
+        
+    } else {
+        // Gửi đồng thời (không có delay)
+        // Tạo tất cả fetch promises CÙNG LÚC
+        const fetchPromises = requestConfigs.map(config => {
+            // Create AbortController for timeout
+            const abortController = new AbortController();
+            config.options.signal = abortController.signal;
+            
+            // Set timeout
+            setTimeout(() => {
+                abortController.abort();
+            }, config.timeoutMs);
+            
+            // Generate cURL command
+            const curlCommand = generateCurlCommand(config.url, method, config.options.headers, config.requestBody, timeoutSeconds);
+            curlCommands.set(config.index, curlCommand);
+            
+            // GỬI REQUEST - tất cả được gọi cùng lúc qua Promise.all
+            return fetch(config.url, config.options)
+                .then(async response => {
+                    const endTime = Date.now();
+                    const duration = endTime - globalStartTime;
+                    
+                    let responseText;
+                    try {
+                        responseText = await response.text();
+                        // Try to parse as JSON for formatting
+                        try {
+                            const parsed = JSON.parse(responseText);
+                            responseText = JSON.stringify(parsed, null, 2);
+                        } catch {
+                            // Keep as is if not JSON
+                        }
+                    } catch {
+                        responseText = "No response body or unable to read";
+                    }
+                    
+                    return {
+                        index: config.index,
+                        success: response.ok,
+                        status: response.status,
+                        responseText,
+                        duration,
+                        startTime: globalStartTime,
+                        endTime
+                    };
+                })
+                .catch(error => {
+                    const endTime = Date.now();
+                    const duration = endTime - globalStartTime;
+                    
+                    let errorMessage = error.toString();
+                    let statusCode = "Error";
+                    if (error.name === 'AbortError') {
+                        errorMessage = `Request timed out after ${timeoutSeconds} seconds`;
+                        statusCode = "Timeout";
+                    }
+                    
+                    return {
+                        index: config.index,
+                        success: false,
+                        status: statusCode,
+                        responseText: errorMessage,
+                        duration,
+                        startTime: globalStartTime,
+                        endTime
+                    };
+                });
+        });
+
+        // ===== CHỜ TẤT CẢ HOÀN THÀNH VÀ XỬ LÝ KẾT QUẢ =====
+        const results = await Promise.allSettled(fetchPromises);
+        
+        // Process all results
+        results.forEach((result, i) => {
+            if (result.status === 'fulfilled') {
+                const data = result.value;
+                
+                // Update stats
+                updateStatsFromResult(data, data.index);
+            } else {
+                // Handle promise rejection
+                const requestIndex = requestConfigs[i]?.index || i + 1;
+                const duration = Date.now() - globalStartTime;
+                
+                responseData.set(requestIndex, "Promise rejected: " + result.reason);
+                addTableRow(requestIndex, false, "Error", 
+                           new Date(globalStartTime), new Date(), duration);
+                
+                errorCount++;
+                totalDuration += duration;
+                minDuration = Math.min(minDuration, duration);
+                maxDuration = Math.max(maxDuration, duration);
+            }
+        });
+    }
 
     // Hide loading indicator
     document.getElementById('loading').classList.add('hidden');
+    
+    // Show stats container
+    document.getElementById('stats-container').classList.remove('hidden');
 
     // Final stats update
     updateStats(successCount, errorCount, totalDuration, actualCount, minDuration, maxDuration);
-    document.getElementById('stats-container').classList.remove('hidden');
 
     // Scroll to show results
     document.querySelector('.overflow-auto').scrollTop = 0;
+}
+
+async function sendRequestWithDelay(config, index, delayMs, globalStartTime) {
+    // Nếu không phải request đầu tiên, delay
+    if (index > 0) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+    
+    // Create AbortController for timeout
+    const abortController = new AbortController();
+    config.options.signal = abortController.signal;
+    
+    // Set timeout
+    setTimeout(() => {
+        abortController.abort();
+    }, config.timeoutMs);
+    
+    // Generate cURL command
+    const method = document.getElementById('method').value;
+    const timeoutSeconds = parseInt(document.getElementById('timeout').value);
+    const curlCommand = generateCurlCommand(config.url, method, config.options.headers, config.requestBody, timeoutSeconds);
+    curlCommands.set(config.index, curlCommand);
+    
+    try {
+        const response = await fetch(config.url, config.options);
+        const endTime = Date.now();
+        const duration = endTime - globalStartTime;
+        
+        let responseText;
+        try {
+            responseText = await response.text();
+            // Try to parse as JSON for formatting
+            try {
+                const parsed = JSON.parse(responseText);
+                responseText = JSON.stringify(parsed, null, 2);
+            } catch {
+                // Keep as is if not JSON
+            }
+        } catch {
+            responseText = "No response body or unable to read";
+        }
+        
+        const result = {
+            index: config.index,
+            success: response.ok,
+            status: response.status,
+            responseText,
+            duration,
+            startTime: globalStartTime,
+            endTime
+        };
+        
+        return result;
+        
+    } catch (error) {
+        const endTime = Date.now();
+        const duration = endTime - globalStartTime;
+        
+        let errorMessage = error.toString();
+        let statusCode = "Error";
+        if (error.name === 'AbortError') {
+            const timeoutSeconds = parseInt(document.getElementById('timeout').value);
+            errorMessage = `Request timed out after ${timeoutSeconds} seconds`;
+            statusCode = "Timeout";
+        }
+        
+        return {
+            index: config.index,
+            success: false,
+            status: statusCode,
+            responseText: errorMessage,
+            duration,
+            startTime: globalStartTime,
+            endTime
+        };
+    }
+}
+
+function updateStatsFromResult(data, requestIndex) {
+    // Update global stats variables
+    if (typeof successCount === 'undefined') successCount = 0;
+    if (typeof errorCount === 'undefined') errorCount = 0;
+    if (typeof totalDuration === 'undefined') totalDuration = 0;
+    if (typeof minDuration === 'undefined') minDuration = Infinity;
+    if (typeof maxDuration === 'undefined') maxDuration = 0;
+    
+    totalDuration += data.duration;
+    minDuration = Math.min(minDuration, data.duration);
+    maxDuration = Math.max(maxDuration, data.duration);
+    
+    if (data.success) {
+        successCount++;
+    } else {
+        errorCount++;
+    }
+    
+    // Store response data
+    responseData.set(data.index, data.responseText);
+    
+    // Add to table
+    addTableRow(data.index, data.success, data.status, 
+               new Date(data.startTime), new Date(data.endTime), data.duration);
 }
 
 function generateCurlCommand(url, method, headers, body, timeoutSeconds) {
@@ -402,19 +561,14 @@ function generateCurlCommand(url, method, headers, body, timeoutSeconds) {
 
     // Add headers
     Object.entries(headers).forEach(([key, value]) => {
-        if (key === 'Authorization' && value.startsWith('Bearer ')) {
-            curl += `  -H "${key}: ${value}" \\\n`;
-        } else if (key !== 'Content-Type' || (key === 'Content-Type' && value !== 'application/json')) {
-            curl += `  -H "${key}: ${value}" \\\n`;
+        if (key.toLowerCase() === 'content-type' && value === 'application/json' && method === 'GET') {
+            // Skip Content-Type for GET requests since we don't have body
+            return;
         }
+        curl += `  -H "${key}: ${value}" \\\n`;
     });
 
-    // Add Content-Type header for JSON if not GET
-    if (method !== 'GET' && body) {
-        curl += `  -H "Content-Type: application/json" \\\n`;
-    }
-
-    // Add body data if exists
+    // Add body data if exists and method is not GET
     if (body && method !== 'GET') {
         // Escape quotes and newlines for cURL
         const escapedBody = body.replace(/"/g, '\\"').replace(/\n/g, '\\n');
@@ -534,13 +688,13 @@ function addTableRow(index, success, status, startTime, endTime, duration) {
 }
 
 function updateStats(success, error, totalDuration, completed, minTime, maxTime) {
-    const total = completed;
+    const total = completed; // Sử dụng completed làm total
     const avgTime = completed > 0 ? Math.round(totalDuration / completed) : 0;
 
     document.getElementById('stat-success').textContent = success;
     document.getElementById('stat-error').textContent = error;
     document.getElementById('stat-avg-time').textContent = avgTime;
-    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-total').textContent = total; // Sử dụng total thay vì completed
     document.getElementById('stat-min-time').textContent = minTime === Infinity ? 0 : minTime;
     document.getElementById('stat-max-time').textContent = maxTime;
 

@@ -150,8 +150,22 @@
                         </div>
                     </div>
 
-                    <!-- Empty column to maintain 4-column layout -->
-                    <div class="hidden md:block"></div>
+                    <!-- Delay Between Requests - 1/4 -->
+                    <div class="flex flex-col">
+                        <label for="delay" class="text-xs font-medium text-gray-800 mb-1">Delay (ms)</label>
+                        <div class="relative">
+                            <input type="number" id="delay" value="0" min="0" max="10000"
+                                class="w-full px-2 py-1.5 pr-6 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            <button
+                                class="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center opacity-70 hover:bg-error hover:text-white transition-colors"
+                                onclick="clearInput('delay')" title="Clear">
+                                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- API Endpoint URL - full width -->
                     <div class="flex flex-col md:col-span-4">
@@ -170,22 +184,15 @@
                         </div>
                     </div>
 
-                    <!-- Authorization Token - full width -->
+                    <!-- Dynamic Headers - full width -->
                     <div class="flex flex-col md:col-span-4">
-                        <label for="token" class="text-xs font-medium text-gray-800 mb-1">Authorization Token
-                            (optional)</label>
-                        <div class="relative">
-                            <input type="text" id="token" placeholder="Bearer token or API key"
-                                class="w-full px-2 py-1.5 pr-6 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
-                            <button
-                                class="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center opacity-70 hover:bg-error hover:text-white transition-colors"
-                                onclick="clearInput('token')" title="Clear">
-                                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                                </svg>
-                            </button>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="headers" class="text-xs font-medium text-gray-800">Custom Headers (JSON, optional)</label>
+                            <button type="button" onclick="addDefaultHeaders()" class="text-2xs text-primary hover:text-primary-dark">Add Default</button>
                         </div>
+                        <textarea id="headers" placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}'
+                            class="w-full px-2 py-1.5 text-gray-900 bg-white border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent font-mono text-xs min-h-[100px] resize-y"></textarea>
+                        <p class="text-2xs text-gray-600 mt-1">Enter headers as JSON key-value pairs. Content-Type will be automatically added for POST/PUT/PATCH.</p>
                     </div>
 
                     <!-- Request Body - full width -->
@@ -208,8 +215,13 @@
                 <div class="flex gap-2 mt-1">
                     <button
                         class="flex-1 px-3 py-1.5 bg-gray-200 text-gray-800 font-medium rounded text-xs hover:bg-gray-300 transition-colors"
-                        onclick="formatJsonBody()">
-                        Format JSON
+                        onclick="formatJson('body')">
+                        Format JSON Body
+                    </button>
+                    <button
+                        class="flex-1 px-3 py-1.5 bg-gray-200 text-gray-800 font-medium rounded text-xs hover:bg-gray-300 transition-colors"
+                        onclick="formatJson('headers')">
+                        Format JSON Headers
                     </button>
                     <button
                         class="flex-1 px-3 py-1.5 bg-primary text-white font-medium rounded text-xs hover:bg-primary-dark transition-colors"
