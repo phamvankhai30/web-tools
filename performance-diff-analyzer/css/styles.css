@@ -42,6 +42,17 @@ body {
     animation: growWidth 0.8s ease-out;
 }
 
+/* Toast animations */
+@keyframes slideInUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
 /* Tab styles */
 .tab-active {
     border-bottom: 2px solid #4361ee;

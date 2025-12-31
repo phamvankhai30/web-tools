@@ -34,7 +34,7 @@ function initApp() {
 
 function setupEventListeners() {
     // Setup clear buttons
-    ['baseA', 'baseB', 'tokenA', 'tokenB', 'timeout'].forEach(id => {
+    ['baseA', 'baseB', 'headersA', 'headersB', 'timeout'].forEach(id => {
         const input = document.getElementById(id);
         if (input) {
             input.addEventListener('input', () => toggleClearButton(id));
@@ -114,6 +114,27 @@ function validateInputs() {
         return false;
     }
 
+    // Validate headers JSON
+    try {
+        const headersAText = document.getElementById('headersA').value.trim();
+        if (headersAText) {
+            JSON.parse(headersAText);
+        }
+    } catch (e) {
+        alert('Invalid JSON format in Server A headers');
+        return false;
+    }
+    
+    try {
+        const headersBText = document.getElementById('headersB').value.trim();
+        if (headersBText) {
+            JSON.parse(headersBText);
+        }
+    } catch (e) {
+        alert('Invalid JSON format in Server B headers');
+        return false;
+    }
+
     const seen = new Set();
     for (const row of apiRows) {
         const method = row.children[0].querySelector('select').value.trim();
@@ -138,6 +159,8 @@ async function sendAll() {
 
     const baseA = document.getElementById('baseA').value.trim();
     const baseB = document.getElementById('baseB').value.trim();
+    
+    // Save to history
     if (!historyUrlsA.includes(baseA)) {
         historyUrlsA.push(baseA);
         updateDatalist('baseUrlsA', historyUrlsA);
@@ -147,15 +170,42 @@ async function sendAll() {
         updateDatalist('baseUrlsB', historyUrlsB);
     }
 
+    // Clear previous results
     document.getElementById('resultBody').innerHTML = '';
     resultMap.clear();
     responseStore.clear();
 
-    const tokenA = document.getElementById('tokenA').value;
-    const tokenB = document.getElementById('tokenB').value;
-    const timeout = Number(document.getElementById('timeout').value) * 1000;
-    const tasks = [];
+    // Parse headers from JSON
+    let headersA = {};
+    let headersB = {};
+    
+    try {
+        const headersAText = document.getElementById('headersA').value.trim();
+        if (headersAText) {
+            headersA = JSON.parse(headersAText);
+        }
+    } catch (e) {
+        alert('Invalid JSON in Server A headers');
+        return;
+    }
+    
+    try {
+        const headersBText = document.getElementById('headersB').value.trim();
+        if (headersBText) {
+            headersB = JSON.parse(headersBText);
+        }
+    } catch (e) {
+        alert('Invalid JSON in Server B headers');
+        return;
+    }
 
+    const timeout = Number(document.getElementById('timeout').value) * 1000;
+    
+    // Lưu tất cả config trước khi gửi
+    const requestConfigs = [];
+    const globalStartTime = performance.now(); // Thời gian chung cho tất cả requests
+    
+    // Tạo config cho tất cả requests
     document.querySelectorAll('#apiList > tr').forEach(row => {
         const tds = row.children;
         const method = tds[0].querySelector('select').value;
@@ -168,76 +218,218 @@ async function sendAll() {
         console.log(`Adding API: ${method} ${path}, Concurrency: ${concurrency}`);
 
         for (let i = 1; i <= concurrency; i++) {
-            enqueue(tasks, apiKey, i, baseA, tokenA, 'A', method, path, body, timeout);
-            enqueue(tasks, apiKey, i, baseB, tokenB, 'B', method, path, body, timeout);
+            // Server A config
+            requestConfigs.push({
+                apiKey,
+                reqIndex: i,
+                server: 'A',
+                method,
+                path,
+                body,
+                baseUrl: baseA,
+                headers: { ...headersA },
+                timeout,
+                globalStartTime
+            });
+            
+            // Server B config
+            requestConfigs.push({
+                apiKey,
+                reqIndex: i,
+                server: 'B',
+                method,
+                path,
+                body,
+                baseUrl: baseB,
+                headers: { ...headersB },
+                timeout,
+                globalStartTime
+            });
         }
     });
 
-    await Promise.allSettled(tasks);
-    console.log('All requests completed. Results:', Array.from(resultMap.values()));
+    // ===== GỬI TẤT CẢ REQUEST CÙNG LÚC =====
+    const fetchPromises = requestConfigs.map(config => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), config.timeout);
+
+        // Build URL và body
+        let url = config.baseUrl + config.path;
+        let fetchBody;
+        
+        // Đảm bảo có Content-Type cho các method có body
+        const headers = { ...config.headers };
+        if (!headers['Content-Type'] && config.method !== 'GET' && config.body) {
+            headers['Content-Type'] = 'application/json';
+        }
+        
+        if (config.method === 'GET' && config.body) {
+            url += '?' + new URLSearchParams(config.body).toString();
+        } else if (config.body) {
+            fetchBody = JSON.stringify(config.body);
+        }
+
+        // Generate cURL command
+        const curlCmd = generateCurlCommand(url, config.method, headers, fetchBody, config.timeout / 1000);
+        const requestTime = formatTimeMS(Date.now());
+
+        // TẤT CẢ REQUEST ĐƯỢC TẠO CÙNG LÚC
+        return fetch(url, {
+            method: config.method,
+            headers: headers,
+            body: fetchBody,
+            signal: controller.signal
+        })
+        .then(async response => {
+            clearTimeout(timeoutId);
+            const text = await response.text();
+            const duration = Math.round(performance.now() - config.globalStartTime);
+            
+            return {
+                status: response.status,
+                duration: duration,
+                response: text,
+                server: config.server,
+                curl: curlCmd,
+                method: config.method,
+                path: config.path,
+                requestTime: requestTime,
+                responseTime: formatTimeMS(Date.now()),
+                headers: Object.fromEntries(response.headers.entries()),
+                apiKey: config.apiKey,
+                reqIndex: config.reqIndex
+            };
+        })
+        .catch(error => {
+            clearTimeout(timeoutId);
+            const duration = Math.round(performance.now() - config.globalStartTime);
+            let status = 'ERR';
+            if (error.name === 'AbortError') {
+                status = 'TIMEOUT';
+            }
+            
+            return {
+                status: status,
+                duration: duration,
+                response: error.message,
+                server: config.server,
+                curl: curlCmd,
+                method: config.method,
+                path: config.path,
+                requestTime: requestTime,
+                responseTime: formatTimeMS(Date.now()),
+                headers: {},
+                apiKey: config.apiKey,
+                reqIndex: config.reqIndex
+            };
+        })
+        .then(result => {
+            // Store response
+            const key = `${config.apiKey}-${config.path}-${config.reqIndex}-${config.server}`;
+            responseStore.set(key, result);
+
+            // Store in result map
+            resultMap.set(`${config.apiKey}-${config.reqIndex}-${config.server}`, {
+                ...result,
+                endpoint: config.path
+            });
+            
+            return result;
+        });
+    });
+
+    // GỬI TẤT CẢ ĐỒNG THỜI
+    console.log(`Sending ${fetchPromises.length} requests simultaneously...`);
+    await Promise.allSettled(fetchPromises);
+    
+    console.log('All requests completed.');
     render();
     updateCompareViews();
     updateSummaryView();
 }
 
-function enqueue(queue, apiKey, reqIndex, base, token, server, method, path, body, timeout) {
-    const controller = new AbortController();
-    setTimeout(() => controller.abort(), timeout);
+function generateCurlCommand(url, method, headers, body, timeoutSeconds) {
+    let curl = `curl -X ${method} "${url}" \\\n`;
+    
+    // Add timeout option
+    curl += `  --max-time ${timeoutSeconds} \\\n`;
+    
+    // Add headers
+    Object.entries(headers).forEach(([key, value]) => {
+        if (key.toLowerCase() === 'content-type' && value === 'application/json' && method === 'GET') {
+            // Skip Content-Type for GET requests
+            return;
+        }
+        curl += `  -H "${key}: ${value}" \\\n`;
+    });
+    
+    // Add body data if exists and method is not GET
+    if (body && method !== 'GET') {
+        // Escape quotes and newlines for cURL
+        const escapedBody = body.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        curl += `  -d "${escapedBody}"`;
+    } else {
+        // Remove trailing backslash and newline
+        curl = curl.slice(0, -3);
+    }
+    
+    return curl;
+}
 
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = token.startsWith('Bearer') ? token : `Bearer ${token}`;
+function addDefaultHeaders(textareaId) {
+    const textarea = document.getElementById(textareaId);
+    const defaultHeaders = {
+        "Authorization": "Bearer your_token_here",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "PerformanceDiffAnalyzer/1.0"
+    };
+    
+    try {
+        const currentHeaders = textarea.value.trim();
+        let mergedHeaders = defaultHeaders;
+        
+        if (currentHeaders) {
+            const parsed = JSON.parse(currentHeaders);
+            mergedHeaders = { ...defaultHeaders, ...parsed };
+        }
+        
+        textarea.value = JSON.stringify(mergedHeaders, null, 2);
+        showToast("Default headers added!");
+    } catch (e) {
+        // If invalid JSON, just set defaults
+        textarea.value = JSON.stringify(defaultHeaders, null, 2);
+        showToast("Default headers added!");
+    }
+}
 
-    let url = base + path;
-    let fetchBody;
-    if (method === 'GET' && body) url += '?' + new URLSearchParams(body).toString();
-    else if (body) fetchBody = JSON.stringify(body);
+function formatJson(textareaId) {
+    const textarea = document.getElementById(textareaId);
+    const text = textarea.value.trim();
 
-    const curlCmd = `curl -X ${method} "${url}"${fetchBody ? ` -d '${fetchBody}'` : ''}${token ? ` -H 'Authorization: ${token}'` : ''}`;
-    const requestTime = formatTimeMS(Date.now());
-    const start = performance.now();
+    if (!text) return;
 
-    queue.push(
-        fetch(url, { method, headers, body: fetchBody, signal: controller.signal })
-            .then(async r => {
-                const text = await r.text();
-                return {
-                    status: r.status,
-                    duration: Math.round(performance.now() - start),
-                    response: text,
-                    server,
-                    curl: curlCmd,
-                    method,
-                    path,
-                    requestTime,
-                    responseTime: formatTimeMS(Date.now()),
-                    headers: Object.fromEntries(r.headers.entries())
-                };
-            })
-            .catch(e => ({
-                status: 'ERR',
-                duration: Math.round(performance.now() - start),
-                response: e.message,
-                server,
-                curl: curlCmd,
-                method,
-                path,
-                requestTime,
-                responseTime: formatTimeMS(Date.now()),
-                headers: {}
-            }))
-            .then(res => {
-                // Store response for comparison
-                const key = `${apiKey}-${path}-${reqIndex}-${server}`;
-                responseStore.set(key, res);
+    try {
+        const parsed = JSON.parse(text);
+        textarea.value = JSON.stringify(parsed, null, 2);
+        showToast("JSON formatted successfully!");
+    } catch (e) {
+        alert("Invalid JSON format. Cannot format.");
+    }
+}
 
-                resultMap.set(`${apiKey}-${reqIndex}-${server}`, {
-                    ...res,
-                    apiKey,
-                    reqIndex,
-                    endpoint: path
-                });
-            })
-    );
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.className = 'fixed bottom-3 right-3 bg-primary text-white px-3 py-2 rounded shadow z-50 text-xs';
+    toast.style.animation = 'slideInUp 0.3s ease-out';
+    
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
 }
 
 function render() {
@@ -263,7 +455,7 @@ function render() {
             tr.className = 'hover:bg-gray-50';
 
             let statusClass = 'bg-gray-100 text-gray-800';
-            if (r.status === 'ERR') {
+            if (r.status === 'ERR' || r.status === 'TIMEOUT') {
                 statusClass = 'bg-red-100 text-red-800';
             } else if (r.status >= 200 && r.status < 300) {
                 statusClass = 'bg-green-100 text-green-800';
@@ -373,7 +565,7 @@ function calculateStats(results) {
 
     const durations = results.map(r => r.duration).filter(d => !isNaN(d));
     const successCount = results.filter(r => r.status >= 200 && r.status < 300).length;
-    const errorCount = results.filter(r => r.status === 'ERR' || r.status >= 400).length;
+    const errorCount = results.filter(r => r.status === 'ERR' || r.status === 'TIMEOUT' || r.status >= 400).length;
 
     const avgDuration = durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
     const minDuration = durations.length > 0 ? Math.min(...durations) : 0;
@@ -401,7 +593,7 @@ function calculateStats(results) {
         total: results.length,
         successCount,
         errorCount,
-        successRate: (successCount / results.length * 100).toFixed(1),
+        successRate: results.length > 0 ? (successCount / results.length * 100).toFixed(1) : '0.0',
         avgDuration: Math.round(avgDuration),
         minDuration,
         maxDuration,
@@ -804,7 +996,7 @@ function updateSummaryView() {
 
     // Update summary metrics
     document.getElementById('summaryTotalRequests').textContent = results.length;
-    const overallSuccessRate = ((aStats.successCount + bStats.successCount) / results.length * 100).toFixed(1);
+    const overallSuccessRate = results.length > 0 ? ((aStats.successCount + bStats.successCount) / results.length * 100).toFixed(1) : '0.0';
     document.getElementById('summarySuccessRate').textContent = `${overallSuccessRate}%`;
 
     const overallWinner = getOverallWinner(aStats, bStats);
@@ -990,21 +1182,6 @@ function updateDatalist(id, values) {
     });
 }
 
-// Close modal when clicking outside
-window.addEventListener('click', (e) => {
-    if (e.target.id === 'modalCurl') closeModal('modalCurl');
-    if (e.target.id === 'modalResponse') closeModal('modalResponse');
-    if (e.target.id === 'modalCompare') closeModal('modalCompare');
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeModal('modalCurl');
-        closeModal('modalResponse');
-        closeModal('modalCompare');
-    }
-});
-
 // ===== DROPDOWN MENU FUNCTIONALITY =====
 function setupModernDropdown() {
     const dropdownToggle = document.querySelector('.dropdown-toggle');
@@ -1055,6 +1232,21 @@ function setupModernDropdown() {
 function initDropdown() {
     setupModernDropdown();
 }
+
+// Close modal when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target.id === 'modalCurl') closeModal('modalCurl');
+    if (e.target.id === 'modalResponse') closeModal('modalResponse');
+    if (e.target.id === 'modalCompare') closeModal('modalCompare');
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeModal('modalCurl');
+        closeModal('modalResponse');
+        closeModal('modalCompare');
+    }
+});
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
