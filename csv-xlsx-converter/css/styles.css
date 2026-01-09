@@ -1,0 +1,521 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a56d4;
+    --primary-light: #dbeafe;
+    --success: #06d6a0;
+    --error: #ef476f;
+    --warning: #ffd166;
+    --file-csv: #10b981;
+    --file-excel: #3b82f6;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background-color: #f9fafb; /* Đảm bảo nền sáng */
+}
+
+/* Table styling for preview */
+#preview {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: white; /* Thêm vào */
+}
+
+#preview th {
+    position: sticky;
+    top: 0;
+    background-color: #f9fafb !important; /* !important để đè dark mode */
+    color: #374151 !important; /* Màu chữ tối cho tiêu đề */
+    z-index: 10;
+    box-shadow: 0 1px 0 #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+#preview td {
+    background-color: white !important; /* !important để đè dark mode */
+    color: #374151 !important; /* Màu chữ tối */
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Drop zone animation */
+#dropZone.dragover {
+    border-color: var(--primary-dark);
+    background-color: rgba(67, 97, 238, 0.05);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(67, 97, 238, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+    }
+}
+
+/* File type badges */
+.file-badge-csv {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--file-csv);
+}
+
+.file-badge-excel {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--file-excel);
+}
+
+/* File list items */
+.file-item {
+    transition: all 0.2s ease;
+}
+
+.file-item:hover {
+    transform: translateX(4px);
+    background-color: #f8fafc;
+}
+
+/* Custom scrollbar for preview */
+.preview-container {
+    background-color: white; /* Thêm vào */
+}
+
+.preview-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.preview-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.preview-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.preview-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Loading animation for conversion */
+@keyframes convertPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.converting {
+    animation: convertPulse 2s infinite;
+}
+
+/* Conversion status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.status-ready {
+    background-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.status-converting {
+    background-color: #f59e0b;
+    animation: statusPulse 1.5s infinite;
+}
+
+.status-error {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+@keyframes statusPulse {
+    0% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+    70% {
+        opacity: 0.8;
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+    }
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+}
+
+/* Preview table special styling */
+.preview-overlay {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #6b7280;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== MODERN ANIMATED DROPDOWN ===== */
+.tool-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.dropdown-toggle:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.dropdown-toggle:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 260px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 
+                0 0 0 1px rgba(0, 0, 0, 0.05),
+                0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* Arrow pointing up */
+.dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-left: 1px solid #e5e7eb;
+    border-top: 1px solid #e5e7eb;
+    transform: rotate(45deg);
+    z-index: 1;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    border-bottom: 1px solid #f8fafc;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+/* ===== ĐẢO NGƯỢC MÀU SẮC ===== */
+/* Item được chọn (active) - MÀU XANH */
+.dropdown-item.active {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1d4ed8;
+    border-left: 3px solid #3b82f6;
+}
+
+.dropdown-item.active .dropdown-item-desc {
+    color: #4b5563;
+}
+
+/* Item không được chọn - MÀU TRẮNG */
+.dropdown-item:not(.active) {
+    background: white;
+    color: #334155;
+    border-left: 3px solid transparent;
+}
+
+.dropdown-item:not(.active) .dropdown-item-desc {
+    color: #64748b;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dropdown-item-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.dropdown-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.dropdown-item-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin-bottom: 2px;
+}
+
+.dropdown-item-desc {
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+/* Hover effect cho tất cả items */
+.dropdown-item:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #2563eb;
+    transform: translateX(4px);
+}
+
+/* Active item khi hover - màu xanh đậm hơn */
+.dropdown-item.active:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-success {
+    background-color: rgba(6, 214, 160, 0.1);
+    color: #06d6a0;
+}
+
+.status-error {
+    background-color: rgba(239, 71, 111, 0.1);
+    color: #ef476f;
+}
+
+.status-warning {
+    background-color: rgba(255, 209, 102, 0.1);
+    color: #d97706;
+}
+
+/* Modal animations */
+.modal-enter {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Toast animations */
+@keyframes slideInUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Sort icon styles */
+.sort-icon {
+    font-size: 0.75rem;
+    transition: transform 0.2s;
+    display: inline-block;
+    width: 12px;
+    text-align: center;
+}
+
+.sort-asc .sort-icon {
+    transform: rotate(0deg);
+}
+
+.sort-desc .sort-icon {
+    transform: rotate(180deg);
+}
+
+.sort-header.active {
+    background-color: #f3f4f6;
+}
+
+.sort-header.active .sort-icon {
+    color: #4361ee;
+    font-weight: bold;
+}
+
+.sort-header:hover {
+    background-color: #f9fafb;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive adjustments for dropdown */
+@media (max-width: 768px) {
+    .dropdown-menu {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        width: auto;
+        border-radius: 16px 16px 0 0;
+        max-height: 60vh;
+        overflow-y: auto;
+        transform: translateY(100%);
+    }
+    
+    .dropdown-menu.show {
+        transform: translateY(0);
+    }
+    
+    .dropdown-menu::before {
+        display: none;
+    }
+    
+    /* Mobile file list */
+    #fileListContent {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px;
+    }
+    
+    .file-item > div:first-child {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+}
+
+/* TẠM THỜI XÓA DARK MODE HOẶC THÊM !important */
+@media (prefers-color-scheme: dark) {
+    /* Giữ nguyên cho các phần khác nhưng bỏ table preview */
+    #dropZone {
+        border-color: #3b82f6;
+        background-color: rgba(30, 64, 175, 0.1);
+    }
+    
+    .file-item {
+        background-color: #374151;
+        border-color: #4b5563;
+    }
+    
+    /* XÓA HOẶC COMMENT phần table preview trong dark mode */
+    /*
+    #preview th {
+        background-color: #374151;
+        color: #d1d5db;
+    }
+    
+    #preview td {
+        background-color: #1f2937;
+        color: #d1d5db;
+        border-color: #4b5563;
+    }
+    */
+}
